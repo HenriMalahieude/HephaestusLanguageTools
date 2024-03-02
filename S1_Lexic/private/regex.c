@@ -4,8 +4,12 @@
 #include "match.h"
 
 void Regex_Error(char *msg) {
-	printf("Regex Creation Error @ L%d, C%d: %s", line_no, colu_no, msg);
+	printf("Regex Error @ L%d, C%d:\n%s\n", line_no, colu_no, msg);
 	exit(1);
+}
+
+void Regex_Warning(char *msg) {
+	printf("Regex Warning @ L%d, C%d:\n%s\n", line_no, colu_no, msg);
 }
 
 struct regex* Regex_New_Direct(char *match) {

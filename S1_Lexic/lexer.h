@@ -23,6 +23,8 @@ struct token_vocabulary {
 struct token_instance {
 	char *definition_name;
 	char *matching_input;
+	int line;
+	int col;
 };
 
 /*Make Lexical Vocabulary From a File*/
