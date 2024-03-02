@@ -2,12 +2,13 @@
 #define __HEPHAESTUS_LEXICAL_ANALYZER__
 
 struct regex;
-extern int line_no;
-extern int colu_no;
+extern int regex_line_no;
+extern int regex_colu_no;
 
 /*Definition of a Token*/
 struct token_definition {
 	char *name;
+	char *raw_regex;
 
 	//Array/Sequence of matches before this token is matched
 	struct regex *definition; //NOTE: This is NULL terminated

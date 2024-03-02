@@ -81,3 +81,23 @@ bool Regex_Match_Qualifier(char *input, void *attached_data) { //This will most 
 
 	return false;
 }
+
+bool Regex_Match_Escaped(char *input, void *attached_data) {
+	if (strlen(input) != 1) return false;
+
+	char *spec = (char*)attached_data;
+
+	if (spec[0] != '\\') Regex_Error("Match Escaped. Wasn't escaped?");
+
+	bool white_space = (
+		input[0] == (char)32 || //space
+		((int)input[0] >= 9 && (int)input[0] <= 13) || //h-vtab, nline, npage, carret
+	);
+
+	if (spec[1] == '.') return input[0] == '.';
+	if (spec[1] == 'n') return input[0] == '\n';
+	if (spec[1] == 's') return white_space;
+	if (spec[1] == 'S') return !white_space;
+
+	return false;
+}
