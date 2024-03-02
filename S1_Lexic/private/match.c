@@ -18,8 +18,20 @@ bool Regex_Match_Or(char *input, void *attached_data) {
 	return L || R;
 }
 
-bool Regex_Match_Brackets(char *input, void *attached_data);
+bool Regex_Match_Brackets(char *input, void *attached_data) {
+	if (strlen(input) != 1) return false;
+}
 
-bool Regex_Match_Sequence(char *input, void *attached_data);
+bool Regex_Match_Sequence(char *input, void *attached_data) {
+	if (strlen(input) != 1) return false; //This seems like a bad idea, but since only in brackets..?
+	int ascii_input = (int)*input;
+
+	char *seq = (char*)attached_data;
+	int from = (int)seq[0]; 
+	int to   = (int)seq[2]; // ie: a-z, index 1 is '-'
+	//NOTE: Please check that "from < to"
+	
+	return ascii_input >= from && ascii_input <= to
+}
 
 bool Regex_Match_Qualifier(char *input, void *attached_data);
