@@ -5,6 +5,8 @@ I've used Lexer, Yacc, and Bison to do some Language Definitions but I find it..
 
 So. The idea is a simplified tool kit for interacting with "languages" or text, whatever it may be.
 
+
+---
 That means:
 * Easy Interoperibility: You should be able to pick and choose the tool you'd like to use.
     * Hate my lexer, but love my parsers? This project should be able to interact with others fine. 
@@ -26,6 +28,7 @@ I also would like to make this a modern toolset:
     * Those don't EVEN COMPILE INTO A SINGLE FILE, THEY COMPILE INTO C FIRST MAKING ERRORS SO DIFFICULT TO FUCKING FIND!!!!!
     * This is a skill issue. Moving on.
 
+---
 TODO List:
 1. "Lexic" Tokenizer
 2. "Syntac" Parsers
