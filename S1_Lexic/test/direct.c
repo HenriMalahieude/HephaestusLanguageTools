@@ -18,11 +18,11 @@ int main(void) {
 	printf("[.] Initializing Direct Regex\n");
 	#endif
 
-	char test[100];
+	char test[100]; test[99] = '\0';
 	strcpy(test, "i\0");
 
 	#ifdef VERBOSE
-	printf("[.] Regex Direct Test 1\n");
+	printf("[?] Regex Direct Test 1\n");
 	#endif
 
 	if (direct->match_function(test, direct->attached_data)) {
@@ -30,7 +30,7 @@ int main(void) {
 	}
 
 	#ifdef VERBOSE
-	printf("[.] Regex Direct Test 2\n");
+	printf("[?] Regex Direct Test 2\n");
 	#endif
 
 	strcpy(test, "in\0");
@@ -39,7 +39,7 @@ int main(void) {
 	}
 
 	#ifdef VERBOSE
-	printf("[.] Regex Direct Test 3\n");
+	printf("[?] Regex Direct Test 3\n");
 	#endif
 
 	strcpy(test, "int\0");
@@ -48,7 +48,7 @@ int main(void) {
 	}
 
 	#ifdef VERBOSE
-	printf("[.] Regex Direct Test 4\n");
+	printf("[?] Regex Direct Test 4\n");
 	#endif
 
 	strcpy(test, "double\0");
@@ -57,10 +57,10 @@ int main(void) {
 	}
 
 	#ifdef VERBOSE
-	printf("[.] Regex Direct Test 5\n");
+	printf("[?] Regex Direct Test 5\n");
 	#endif
 
-	strcpy(test, "dobby");
+	strcpy(test, "dobby!!!");
 	if (direct->match_function(test, direct->attached_data)) {
 		printf("[X] Regex Direct Test 5 w/ non null termination\n");
 	}

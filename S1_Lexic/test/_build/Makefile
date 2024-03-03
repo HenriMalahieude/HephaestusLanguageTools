@@ -1,6 +1,10 @@
 CC = gcc
 
-WARN_F = -Wall -Wextra -Wno-unused-parameters -Wno-missing-braces
+WARN_F = -Wall -Wextra -g
+
+or_test: regex.o match.o
+	@echo 'Regex Or Test'
+	@$(CC) ../or.c regex.o match.o -D VERBOSE -o test_regex_or $(WARN_F)
 
 direct_test: regex.o match.o
 	@echo 'Regex Direct Test'
