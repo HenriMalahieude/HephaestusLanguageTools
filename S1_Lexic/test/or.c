@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-
-#include "../private/regex.h"
-
-int regex_line_no = 0;
-int regex_colu_no = 0;
+#include "regex_helper.h"
 
 int main(void) {
 
@@ -31,91 +25,37 @@ int main(void) {
 	printf("[.] Initialized Or Regexes\n");
 #endif
 
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 1\n");
-#endif
-
 	char test[100]; test[99] = '\0';
-	strcpy(test, "int");
-	if (!or1->match_function(test, or1->attached_data)) {
-		printf("[X] Regex Or Test 1 Fail w/ %s\n", test);
-	}
 
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 2\n");
-#endif
+	//Double Or
+	TEST_REGEX_TRUE("Or", 1, test, "int", or1);
 
-	strcpy(test, "double");
-	if (!or1->match_function(test, or1->attached_data)) {
-		printf("[X] Regex Or Test 2 Fail w/ %s\n", test);
-	}
+	TEST_REGEX_TRUE("Or", 2, test, "double", or1);
 	
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 3\n");
-#endif
-
-	strcpy(test, "integer");
-	if (or1->match_function(test, or1->attached_data)) {
-		printf("[X] Regex Or Test 3 Fail w/ %s\n", test);
-	}
+	TEST_REGEX_FALSE("Or", 3, test, "integer", or1);
 	
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 4\n");
-#endif
+	TEST_REGEX_FALSE("Or", 4, test, "doubley", or1);
 
-	strcpy(test, "doubley");
-	if (or1->match_function(test, or1->attached_data)) {
-		printf("[X] Regex Or Test 4 Fail w/ %s\n", test);
-	}
+	TEST_REGEX_FALSE("Or", 5, test, "not", or1);
 
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 5\n");
-#endif
+	//Triple Or
+	TEST_REGEX_TRUE("Or", 6, test, "int", or2);
 
-	strcpy(test, "int\0");
-	if (!or2->match_function(test, or2->attached_data)) {
-		printf("[X] Regex Or Test 5 Fail w/ %s\n", test);
-	}
+	TEST_REGEX_TRUE("Or", 7, test, "double", or2);
 
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 6\n");
-#endif
+	TEST_REGEX_TRUE("Or", 8, test, "char", or2);
 
-	strcpy(test, "double\0");
-	if (!or2->match_function(test, or2->attached_data)) {
-		printf("[X] Regex Or Test 6 Fail w/ %s\n", test);
-	}
+	TEST_REGEX_FALSE("Or", 9, test, "in", or2);
+
+	TEST_REGEX_FALSE("Or", 10, test, "oubl", or2);
+
+	TEST_REGEX_FALSE("Or", 11, test, "ha", or2);
+
+	TEST_REGEX_FALSE("Or", 12, test, "bruh", or2);
 
 #ifdef VERBOSE
-	printf("[?] Regex Or Test 7\n");
-#endif
-
-	strcpy(test, "char\0");
-	if (!or2->match_function(test, or2->attached_data)) {
-		printf("[X] Regex Or Test 7 Fail w/ %s\n", test);
-	}
-
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 8\n");
-#endif
-
-	strcpy(test, "characcter\0");
-	if (or2->match_function(test, or2->attached_data)) {
-		printf("[X] Regex Or Test 8 Fail w/ %s\n", test);
-	}
-
-#ifdef VERBOSE
-	printf("[?] Regex Or Test 9\n");
-#endif
-
-	strcpy(test, "thingamajig\0");
-	if (or2->match_function(test, or2->attached_data)) {
-		printf("[X] Regex Or Test 9 Fail w/ %s\n", test);
-	}
-
-	#ifdef VERBOSE
 	printf("[!] Regex Or Test Finished\n");
-	#endif
+#endif
 
 	return 0;
 }
