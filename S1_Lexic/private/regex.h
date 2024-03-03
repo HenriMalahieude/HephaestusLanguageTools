@@ -21,7 +21,7 @@ struct regex* Regex_New_Brackets(char *internals);
 
 struct regex* Regex_New_Sequence(char *seq);
 
-struct regex* Regex_New_Qualifier(struct regex *prev);
+struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier);
 
 struct regex* Regex_New_Escaped(char *special);
 

@@ -1,3 +1,6 @@
 #Executable/Compiled Files
 *.out
 *.exe
+
+#Build Files
+*.o

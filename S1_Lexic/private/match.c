@@ -1,4 +1,5 @@
 #include <string.h>
+#include "regex.h"
 #include "match.h"
 
 bool Regex_Match_Direct(char *input, void *attached_data) {
@@ -7,8 +8,8 @@ bool Regex_Match_Direct(char *input, void *attached_data) {
 }
 
 bool Regex_Match_Or(char *input, void *attached_data) {
-	struct regex *left = ((struct regex**)att)[0];
-	struct regex *right = ((struct regex**)att)[1];
+	struct regex *left = ((struct regex**)attached_data)[0];
+	struct regex *right = ((struct regex**)attached_data)[1];
 
 	bool L = left->match_function(input, left->attached_data);
 	bool R = false;
@@ -50,11 +51,11 @@ bool Regex_Match_Qualifier(char *input, void *attached_data) { //This will most 
 	struct regex *group = *(struct regex**)((long long int**)attached_data)[1];
 
 	unsigned int match_count = 0; //For ? and +
-	int consume_count = 0; //For if we have "[abc]+" and we receive "aacbabcd", that last d will mean this doesn't match completely
+	size_t consume_count = 0; //For if we have "[abc]+" and we receive "aacbabcd", that last d will mean this doesn't match completely
 
-	int start = 0; //Start -> End: Inclusive -> Exclusive
-	char substring[1000]; int subs_len = 0;
-	for (int end = 1; end <= strlen(input); end++) { //"<=" since end is exclusive
+	size_t start = 0; //Start -> End: Inclusive -> Exclusive
+	char substring[1000]; size_t subs_len = 0;
+	for (size_t end = 1; end <= strlen(input); end++) { //"<=" since end is exclusive
 		if (start >= strlen(input)) break; //No reason for it to be, but never know
 		
 		//forward the substring
@@ -91,7 +92,7 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 
 	bool white_space = (
 		input[0] == (char)32 || //space
-		((int)input[0] >= 9 && (int)input[0] <= 13) || //h-vtab, nline, npage, carret
+		((int)input[0] >= 9 && (int)input[0] <= 13) //h-vtab, nline, npage, carret
 	);
 
 	if (spec[1] == '.') return input[0] == '.';

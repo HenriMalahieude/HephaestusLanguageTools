@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../lexer.h"
 #include "regex.h"
@@ -44,7 +45,7 @@ void BracketAdd(struct regex **intern, struct regex *to_add, int *count) {
 	if (intern == NULL) Regex_Error("Oops? Caught a realloc error in BracketAdd?");
 
 	intern[*count-1] = to_add;//Don't insert null after
-}k
+}
 
 struct regex* Regex_New_Brackets(char *internals) {
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
@@ -83,8 +84,8 @@ struct regex* Regex_New_Brackets(char *internals) {
 	}
 
 	//We've completed the bracket rule creation, now delineate the field
-	bracket_internals = realloc(bracket_internals, (*count+1)*sizeof(struct regex*));
-	bracket_internals[*count] = NULL; //there is no more
+	bracket_internals = realloc(bracket_internals, (bracket_count + 1) * sizeof(struct regex*));
+	bracket_internals[bracket_count] = NULL; //there is no more
 	
 	def->attached_data = bracket_internals;
 	def->match_function = Regex_Match_Brackets;
@@ -105,9 +106,9 @@ struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 	def->attached_data = malloc(2*sizeof(long long int*)); //now **
 	
 	char *ptr_attch = (char *)malloc(sizeof(char));
-	*ptr_attach = qualifier;
-	((long long int **)def->attached_data)[0] = (long long int*)ptr_attach;
-	((long long int **)def->attached_data)[1] = (long long int*)def;
+	*ptr_attch = qualifier;
+	((long long int **)def->attached_data)[0] = (long long int*)ptr_attch;
+	((long long int **)def->attached_data)[1] = (long long int*)prev;
 
 	def->match_function = Regex_Match_Qualifier;
 	return def;
@@ -119,4 +120,5 @@ struct regex* Regex_New_Escaped(char *special) {
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
 	def->attached_data = special;
 	def->match_function = Regex_Match_Escaped;
+	return def;
 }
