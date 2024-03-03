@@ -1,5 +1,8 @@
 #include "regex_helper.h"
 
+#undef TEST_NAME
+#define TEST_NAME "Direct"
+
 int main(void) {
 	#ifdef VERBOSE
 	printf("[!] Regex Direct Test\n");
@@ -12,19 +15,18 @@ int main(void) {
 	printf("[.] Initialized Direct Regex\n");
 	#endif
 
-	char test[100]; test[99] = '\0';
 
-	TEST_REGEX_FALSE("Direct", 0, test, "\0", direct);
+	TEST_REGEX_FALSE("\0", direct);
 	
-	TEST_REGEX_FALSE("Direct", 1, test, "i\0", direct);
+	TEST_REGEX_FALSE("i\0", direct);
 	
-	TEST_REGEX_FALSE("Direct", 2, test, "in\0", direct);
+	TEST_REGEX_FALSE("in\0", direct);
 
-	TEST_REGEX_TRUE("Direct", 3, test, "int\0", direct);
+	TEST_REGEX_TRUE("int\0", direct);
 
-	TEST_REGEX_FALSE("Direct", 4, test, "double\0", direct);
+	TEST_REGEX_FALSE("double\0", direct);
 
-	TEST_REGEX_FALSE("Direct", 5, test, "dobby!!!!", direct);
+	TEST_REGEX_FALSE("dobby!!!!", direct);
 
 	#ifdef VERBOSE
 	printf("[!] Regex Direct Test Finished\n");
