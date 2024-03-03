@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "../lexer.h"
 #include "regex.h"
 #include "match.h"
 
@@ -89,8 +91,32 @@ struct regex* Regex_New_Brackets(char *internals) {
 	return def;
 }
 
-struct regex* Regex_New_Sequence(char *seq);
+struct regex* Regex_New_Sequence(char *seq) {
+	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3");
 
-struct regex* Regex_New_Qualifier(struct regex *prev);
+	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->attached_data = seq;
+	def->match_function = Regex_Match_Sequence;
+	return def;
+}
 
-struct regex* Regex_New_Escaped(char *special);
+struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
+	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->attached_data = malloc(2*sizeof(long long int*)); //now **
+	
+	char *ptr_attch = (char *)malloc(sizeof(char));
+	*ptr_attach = qualifier;
+	((long long int **)def->attached_data)[0] = (long long int*)ptr_attach;
+	((long long int **)def->attached_data)[1] = (long long int*)def;
+
+	def->match_function = Regex_Match_Qualifier;
+	return def;
+}
+
+struct regex* Regex_New_Escaped(char *special) {
+	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2");
+
+	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->attached_data = special;
+	def->match_function = Regex_Match_Escaped;
+}
