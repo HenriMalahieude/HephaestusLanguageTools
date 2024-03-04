@@ -23,7 +23,7 @@ bool Regex_Match_Brackets(char *input, void *attached_data) {
 	if (strlen(input) != 1) return false;
 
 	struct regex** list = (struct regex**)attached_data; //NULL-Terminated
-	for (struct regex** cur = list; cur != NULL; cur++) {
+	for (struct regex** cur = list; *cur != NULL; cur++) {
 		struct regex *using = cur[0];
 		bool value = using->match_function(input, using->attached_data);
 		if (value) return true;

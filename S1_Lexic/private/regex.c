@@ -35,19 +35,8 @@ struct regex* Regex_New_Or(struct regex *left, struct regex *right) {
 	return def;
 }
 
-//Man, this is why people hate pointers. Am I passing **intern? or ***intern? atp, idc, i just hope it works
-void BracketAdd(struct regex **intern, struct regex *to_add, int *count) {
-	*count += 1;
-	
-	struct regex **old_intern = intern;
-	intern = realloc(intern, *count * sizeof(struct regex*));
-	if (old_intern != NULL && old_intern != intern) free(old_intern); //catch a mem copy instead of grow
-	if (intern == NULL) Regex_Error("Oops? Caught a realloc error in BracketAdd?");
-
-	intern[*count-1] = to_add;//Don't insert null after
-}
-
 struct regex* Regex_New_Brackets(char *internals) {
+	if (strlen(internals) <= 0) Regex_Error("New Brackets. internals cannot be len = 0\n");
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
 	
 	struct regex **bracket_internals = NULL;
@@ -60,11 +49,15 @@ struct regex* Regex_New_Brackets(char *internals) {
 			char *seq = (char*)malloc(4*sizeof(char));
 			seq[0] = cur; seq[1] = nex; seq[2] = internals[i+2]; seq[3] = '\0';
 			struct regex* seq_regex = Regex_New_Sequence(seq);
+			
+			bracket_count++;
+			bracket_internals = (struct regex **)realloc(bracket_internals, bracket_count * sizeof(struct regex *));
+			if (bracket_internals == NULL) Regex_Error("realloc error in brackets\n");
+			bracket_internals[bracket_count-1] = seq_regex;
 
-			BracketAdd(bracket_internals, seq_regex, &bracket_count);
 			i += 2; //move i to i+2, on last char of seq. then eol will move i to after seq
-		} else { //This is a "literal"
-			if (cur == '[' || cur == ']') Regex_Error("Bracket Rule within Bracket Rule not supported");
+		} else if (cur != '\0') { //This is a "literal"
+			if (cur == '[' || cur == ']') Regex_Error("Bracket Rule within Bracket Rule not supported\n");
 
 			struct regex *lit_regex; //ahaha, iz littt
 			char *lit = (char*)malloc(3*sizeof(char));
@@ -79,12 +72,15 @@ struct regex* Regex_New_Brackets(char *internals) {
 				//No need for special movement
 			}
 
-			BracketAdd(bracket_internals, lit_regex, &bracket_count);
+			bracket_count++;
+			bracket_internals = (struct regex **)realloc(bracket_internals, bracket_count * sizeof(struct regex *));
+			if (bracket_internals == NULL) Regex_Error("realloc error in brackets\n");
+			bracket_internals[bracket_count-1] = lit_regex;
 		}
 	}
-
+	
 	//We've completed the bracket rule creation, now delineate the field
-	bracket_internals = realloc(bracket_internals, (bracket_count + 1) * sizeof(struct regex*));
+	bracket_internals = (struct regex **)realloc(bracket_internals, (bracket_count + 1) * sizeof(struct regex*));
 	bracket_internals[bracket_count] = NULL; //there is no more
 	
 	def->attached_data = bracket_internals;
@@ -93,7 +89,7 @@ struct regex* Regex_New_Brackets(char *internals) {
 }
 
 struct regex* Regex_New_Sequence(char *seq) {
-	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3");
+	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3\n");
 
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
 	def->attached_data = seq;
@@ -115,7 +111,7 @@ struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 }
 
 struct regex* Regex_New_Escaped(char *special) {
-	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2");
+	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2\n");
 
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
 	def->attached_data = special;
