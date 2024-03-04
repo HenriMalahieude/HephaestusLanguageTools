@@ -17,12 +17,17 @@ void Regex_Warning(char *msg) {
 
 struct regex* Regex_New_Direct(char *match) {
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
-	def->attached_data = match;
+
+	char *local_copy = (char *)malloc((strlen(match)+1) * sizeof(char));
+	strcpy(local_copy, match);
+
+	def->attached_data = local_copy;
 	def->match_function = Regex_Match_Direct;
 
 	return def;
 }
 
+//Assuming left and right are dynamically created with malloc, but they should be
 struct regex* Regex_New_Or(struct regex *left, struct regex *right) {
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
  	
@@ -91,8 +96,11 @@ struct regex* Regex_New_Brackets(char *internals) {
 struct regex* Regex_New_Sequence(char *seq) {
 	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3\n");
 
+	char *local_copy = (char *)malloc(4 * sizeof(char));
+	strcpy(local_copy, seq);
+
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
-	def->attached_data = seq;
+	def->attached_data = local_copy;
 	def->match_function = Regex_Match_Sequence;
 	return def;
 }
@@ -113,8 +121,11 @@ struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 struct regex* Regex_New_Escaped(char *special) {
 	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2\n");
 
+	char *local_copy = (char *)malloc(3*sizeof(char));
+	strcpy(local_copy, special);
+
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
-	def->attached_data = special;
+	def->attached_data = local_copy;
 	def->match_function = Regex_Match_Escaped;
 	return def;
 }
