@@ -2,6 +2,10 @@ CC = gcc
 
 WARN_F = -Wall -Wextra -g
 
+escaped_test: regex.o match.o
+	@echo 'Regex Escaped Test'
+	@$(CC) ../escaped.c regex.o match.o -D VERBOSE -o test_regex_escaped $(WARN_F)
+
 brackets_test: regex.o match.o
 	@echo 'Regex Brackets Test'
 	@$(CC) ../brackets.c regex.o match.o -D VERBOSE -o test_regex_brackets $(WARN_F)
@@ -19,9 +23,11 @@ direct_test: regex.o match.o
 	@$(CC) ../direct.c regex.o match.o -D VERBOSE -o test_regex_direct $(WARN_F)
 
 regex.o: ../../private/regex.h ../../private/regex.c
+	@echo 'regex.c -> .o'
 	@$(CC) ../../private/regex.c -c $(WARN_F)
 
 match.o: ../../private/regex.h ../../private/match.h ../../private/match.c
+	@echo 'match.c -> .o'
 	@$(CC) ../../private/match.c -c $(WARN_F)
 
 clean:
