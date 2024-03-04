@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../lexer.h"
+#include "../lexic.h"
 #include "regex.h"
 #include "match.h"
 
@@ -99,12 +99,12 @@ struct regex* Regex_New_Sequence(char *seq) {
 
 struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
-	def->attached_data = malloc(2*sizeof(long long int*)); //now **
+	def->attached_data = malloc(2*sizeof(long long int));
 	
 	char *ptr_attch = (char *)malloc(sizeof(char));
 	*ptr_attch = qualifier;
-	((long long int **)def->attached_data)[0] = (long long int*)ptr_attch;
-	((long long int **)def->attached_data)[1] = (long long int*)prev;
+	((long long int *)def->attached_data)[0] = (long long int)ptr_attch;
+	((long long int *)def->attached_data)[1] = (long long int)prev;
 
 	def->match_function = Regex_Match_Qualifier;
 	return def;

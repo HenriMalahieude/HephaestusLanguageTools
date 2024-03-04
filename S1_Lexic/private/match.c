@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "regex.h"
 #include "match.h"
 
@@ -47,8 +48,11 @@ bool Regex_Match_Sequence(char *input, void *attached_data) {
 
 //Qualifiers Implemented: ?, +, *,
 bool Regex_Match_Qualifier(char *input, void *attached_data) { //This will most likely need most of the testing
-	char qualifier = *(char*)((long long int**)attached_data)[0]; //Yes, I am well aware of how dastardly this is
-	struct regex *group = *(struct regex**)((long long int**)attached_data)[1];
+	long long int q_ptr = ((long long int*)attached_data)[0]; //Yes, I am well aware of how dastardly this is
+	long long int g_ptr = ((long long int*)attached_data)[1];
+
+	char qualifier = *((char *)q_ptr);
+	struct regex *group = (struct regex *)g_ptr;
 
 	unsigned int match_count = 0; //For ? and +
 	size_t consume_count = 0; //For if we have "[abc]+" and we receive "aacbabcd", that last d will mean this doesn't match completely

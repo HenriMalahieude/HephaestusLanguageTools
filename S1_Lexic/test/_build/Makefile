@@ -2,6 +2,10 @@ CC = gcc
 
 WARN_F = -Wall -Wextra -g
 
+qualifier_test: regex.o match.o
+	@echo 'Regex Qualifier Test'
+	@$(CC) ../qualifier.c regex.o match.o -D VERBOSE -o test_regex_qualifier $(WARN_F)
+
 escaped_test: regex.o match.o
 	@echo 'Regex Escaped Test'
 	@$(CC) ../escaped.c regex.o match.o -D VERBOSE -o test_regex_escaped $(WARN_F)
@@ -31,5 +35,7 @@ match.o: ../../private/regex.h ../../private/match.h ../../private/match.c
 	@$(CC) ../../private/match.c -c $(WARN_F)
 
 clean:
-	-rm *.o 2>/dev/null || true
-	-rm *.exe 2>/dev/null || true
+	@echo 'Removing all object and executables'
+	@rm *.o 2>/dev/null || true
+	@rm *.exe 2>/dev/null || true
+	@rm *.out 2>/dev/null || true

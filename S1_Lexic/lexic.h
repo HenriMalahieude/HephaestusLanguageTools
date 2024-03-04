@@ -21,7 +21,7 @@ struct token_vocabulary {
 	int def_count;
 };
 
-/*An Instance of a Token (Definition)*/
+/*An Instance of a Token*/
 struct token_instance {
 	char *definition_name;
 	char *matching_input;
