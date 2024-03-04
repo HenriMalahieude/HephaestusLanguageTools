@@ -3,10 +3,10 @@
 #undef TEST_NAME
 #define TEST_NAME "Or"
 
-int main(void) {
+void OrTest() {
 
 #ifdef VERBOSE
-	printf("[!] Regex Or Test\n");
+	printf("[!] Regex Or Test Start\n");
 #endif
 
 	char match1[4] = "int";
@@ -58,6 +58,11 @@ int main(void) {
 #ifdef VERBOSE
 	printf("[!] Regex Or Test Finished\n");
 #endif
+}
 
+#ifndef ALL_TESTS
+int main(void) {
+	OrTest();
 	return 0;
 }
+#endif

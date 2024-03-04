@@ -7,7 +7,10 @@
 int regex_line_no = 0;
 int regex_colu_no = 0;
 
-#define TEST_NAME "UNDEFINED"
+#ifndef TEST_NAME
+	#define TEST_NAME "UNDEFINED"
+#endif
+
 int test_count = 1;
 
 #ifndef VERBOSE

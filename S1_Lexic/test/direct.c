@@ -3,9 +3,9 @@
 #undef TEST_NAME
 #define TEST_NAME "Direct"
 
-int main(void) {
+void DirectTest() {
 	#ifdef VERBOSE
-	printf("[!] Regex Direct Test\n");
+	printf("[!] Regex Direct Test Start\n");
 	#endif
 
 	char match[4] = "int";
@@ -32,3 +32,10 @@ int main(void) {
 	printf("[!] Regex Direct Test Finished\n");
 	#endif
 }
+
+#ifndef ALL_TESTS
+int main(void) {
+	DirectTest();
+	return 0;
+}
+#endif
