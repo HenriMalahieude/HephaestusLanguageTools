@@ -10,7 +10,7 @@ void Lexic_Error(char *msg) {
 	exit(1);
 }
 
-struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name) {
+char* ftostr(char *file_name) {
 	FILE *read_from = fopen(file_name, "r");
 	if (read_from == NULL) Lexic_Error("Could not read from file. Does it exist?");
 
@@ -19,7 +19,7 @@ struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name) {
 	file_size = ftell(read_from); //Amount of characters
 	rewind(read_from); //Back to top
 	
-	char *strm = (char*)malloc(file_size+1); //file_size = ftell; which returns bytes
+	char *strm = (char*)calloc(1, file_size+1); //file_size = ftell; which returns bytes
 						 //if char ever changes from bytes to something else, this is screwed lol
 	if (strm == NULL) {
 		fclose(read_from);
@@ -31,11 +31,16 @@ struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name) {
 		free(strm);
 		Lexic_Error("Failed to read from supplied file");
 	}
-	strm[file_size] = '\0';
+
+	fclose(read_from);
+	return strm;
+}
+
+struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name) {
+	char *strm = ftostr(file_name);
 	
 	struct token_vocabulary *dictionary = Lexic_Vocabulary_Make_Stream(strm);
 
-	fclose(read_from);
 	free(strm);
 	return dictionary;
 }
@@ -45,7 +50,12 @@ struct token_vocabulary* Lexic_Vocabulary_Make_Stream(char *stream) {
 }
 
 struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_vocabulary *vocab) {
+	char *strm = ftostr(file_name);
 
+	struct token_instance *tstrm = Lexic_Token_Stream_String(strm, vocab);
+
+	free(strm);
+	return tstrm;
 }
 
 struct token_instance* Lexic_Token_Stream_String(char *stream, struct token_vocabulary *vocab) {
@@ -53,9 +63,30 @@ struct token_instance* Lexic_Token_Stream_String(char *stream, struct token_voca
 }
 
 char ** Lexic_Token_Name_Stream_File(char *file_name, struct token_vocabulary *vocab) {
+	char *strm = ftostr(file_name);
 
+	char **namestrm = Lexic_Token_Name_Stream_String(strm, vocab);
+
+	free(strm);
+	return namestrm;
 }
 
 char ** Lexic_Token_Name_Stream_String(char *stream, struct token_vocabulary *vocab) {
+	struct token_instance *tstrm = Lexic_Token_Stream_String(stream, vocab);
 
+	char **namestrm = NULL;
+	int name_strm_cnt = 0;
+
+	for (;tstrm->name != NULL; tstrm++) {
+		char *name = tstrm->name;
+		
+		name_strm_cnt += 1;
+		namestrm = realloc(namestrm, name_strm_cnt * sizeof(char*));
+		namestrm[name_strm_cnt-1] = (char*)calloc(strlen(name)+1, sizeof(char));
+	}
+
+	namestrm = realloc(namestrm, (name_strm_cnt+1) * sizeof(char*));
+	namestrm[name_strm_cnt] = NULL; //Properly delineate the array
+
+	return namestrm;
 }
