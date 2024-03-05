@@ -41,7 +41,7 @@ struct regex* Regex_New_Or(struct regex *left, struct regex *right) {
 }
 
 struct regex* Regex_New_Brackets(char *internals) {
-	if (strlen(internals) <= 0) Regex_Error("New Brackets. internals cannot be len = 0\n");
+	if (strlen(internals) <= 0) Regex_Error("New Brackets. internals cannot be len = 0");
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
 	
 	struct regex **bracket_internals = NULL;
@@ -57,12 +57,12 @@ struct regex* Regex_New_Brackets(char *internals) {
 			
 			bracket_count++;
 			bracket_internals = (struct regex **)realloc(bracket_internals, bracket_count * sizeof(struct regex *));
-			if (bracket_internals == NULL) Regex_Error("realloc error in brackets\n");
+			if (bracket_internals == NULL) Regex_Error("realloc error in brackets");
 			bracket_internals[bracket_count-1] = seq_regex;
 
 			i += 2; //move i to i+2, on last char of seq. then eol will move i to after seq
 		} else if (cur != '\0') { //This is a "literal"
-			if (cur == '[' || cur == ']') Regex_Error("Bracket Rule within Bracket Rule not supported\n");
+			if (cur == '[' || cur == ']') Regex_Error("Bracket Rule within Bracket Rule not supported");
 
 			struct regex *lit_regex; //ahaha, iz littt
 			char *lit = (char*)malloc(3*sizeof(char));
@@ -79,7 +79,7 @@ struct regex* Regex_New_Brackets(char *internals) {
 
 			bracket_count++;
 			bracket_internals = (struct regex **)realloc(bracket_internals, bracket_count * sizeof(struct regex *));
-			if (bracket_internals == NULL) Regex_Error("realloc error in brackets\n");
+			if (bracket_internals == NULL) Regex_Error("realloc error in brackets");
 			bracket_internals[bracket_count-1] = lit_regex;
 		}
 	}
@@ -94,7 +94,7 @@ struct regex* Regex_New_Brackets(char *internals) {
 }
 
 struct regex* Regex_New_Sequence(char *seq) {
-	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3\n");
+	if (strlen(seq) != 3) Regex_Error("New Sequence. Sequence given not len = 3");
 
 	char *local_copy = (char *)malloc(4 * sizeof(char));
 	strcpy(local_copy, seq);
@@ -119,7 +119,7 @@ struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 }
 
 struct regex* Regex_New_Escaped(char *special) {
-	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2\n");
+	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2");
 
 	char *local_copy = (char *)malloc(3*sizeof(char));
 	strcpy(local_copy, special);
