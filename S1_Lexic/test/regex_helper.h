@@ -1,17 +1,20 @@
+#ifndef __HEPHAESTUS_REGEX_TESTER_HELPER__
+#define __HEPHAESTUS_REGEX_TESTER_HELPER__
+
 #include <stdio.h>
 #include <string.h>
 
 //Test Regex Section
 #include "../private/regex.h"
 
-int regex_line_no = 0;
-int regex_colu_no = 0;
+extern int regex_line_no;
+extern int regex_colu_no;
 
 #ifndef TEST_NAME
 	#define TEST_NAME "UNDEFINED"
 #endif
 
-int test_count = 1;
+extern int test_count;
 
 #ifndef VERBOSE
 
@@ -44,4 +47,4 @@ int test_count = 1;
 		})
 
 #endif
-
+#endif

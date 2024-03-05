@@ -2,6 +2,10 @@ CC = gcc
 
 WARN_F = -Wall -Wextra -g
 
+all_regex: regex.o match.o 
+	@echo 'All Regex Tests'
+	@$(CC) ../all_regex.c regex.o match.o ../qualifier.c ../escaped.c ../brackets.c ../sequence.c ../or.c ../direct.c -D ALL_TESTS -o test_regex_all $(WARN_F)
+
 qualifier_test: regex.o match.o
 	@echo 'Regex Qualifier Test'
 	@$(CC) ../qualifier.c regex.o match.o -D VERBOSE -o test_regex_qualifier $(WARN_F)

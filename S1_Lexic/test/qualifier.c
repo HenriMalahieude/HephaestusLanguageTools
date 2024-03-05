@@ -1,5 +1,8 @@
 #include "regex_helper.h"
 
+#undef TEST_NAME
+#define TEST_NAME "Qualifier"
+
 void QualifierTest() {
 #ifdef VERBOSE
 	printf("[!] Regex Qualifier Test Start\n");
@@ -85,6 +88,11 @@ void QualifierTest() {
 }
 
 #ifndef ALL_TESTS
+
+int regex_line_no = 0;
+int regex_colu_no = 0;
+int test_count = 1;
+
 int main(void) {
 	QualifierTest();
 	return 0;
