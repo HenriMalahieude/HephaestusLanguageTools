@@ -10,6 +10,10 @@ void Lexic_Error(char *msg) {
 	exit(1);
 }
 
+void Lexic_Warn(char *msg) {
+	printf("Lexic Warning @ L%d, C%d: %s\n", regex_line_no, regex_colu_no, msg);
+}
+
 char* ftostr(char *file_name) {
 	FILE *read_from = fopen(file_name, "r");
 	if (read_from == NULL) Lexic_Error("Could not read from file. Does it exist?");
@@ -45,8 +49,57 @@ struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name) {
 	return dictionary;
 }
 
+//Expecting an input of "name: regex\n"+
 struct token_vocabulary* Lexic_Vocabulary_Make_Stream(char *stream) {
+	regex_line_no = 1;
+	regex_colu_no = 1;
 
+	size_t consume_pos = 0;
+	struct token_vocabulary *vocab = malloc(sizeof(struct token_vocabulary));
+	vocab->definitions = NULL;
+	vocab->def_count = 0;
+	
+	bool defining = false;
+	char *lname = NULL;
+	for (size_t pos = 0; pos < strlen(stream); pos++) {
+		if (!defining) { //acquiring the name
+			if (stream[pos] == ':') { //end of name
+				if (consume_pos == pos) Lexic_Error("Cannot have an empty token name.");
+				lname = calloc((pos-consume_pos)+1, sizeof(char));
+				strncopy(lname, stream+consume_pos, pos-consume_pos);
+
+				printf("Lexic Debug: token def name of %s\n", lname);
+
+				consume_pos = pos+1;//consume up to name and colon
+				defining = true;
+			}
+		} else { // defining the token's regex
+			if (pos == (strlen(stream)-1) || stream[pos] == '\n') { //either eof, or new line
+				if (consume_pos == pos) Lexic_Error("Cannot have an empty token definition.");
+				struct token_definition *def = malloc(sizeof(struct token_definition));
+				def->name = lname;
+
+				def->raw_regex = calloc((pos-consume_pos)+1, sizeof(char));
+				strncopy(def->raw_regex, stream+consume_pos, pos-consume_pos);
+
+				printf("Lexic Debug: token def regex of %s\n", def->raw_regex);
+				
+				def->definition = Regex_New_Definition(def->raw_regex, &def->reg_count);
+				
+				vocab->def_count += 1;
+				vocab->definitions = realloc(vocab->definitions, (vocab->def_count)*sizeof(struct token_definition));
+				vocab->definitions[vocab->def_count-1] = def;
+				
+				consume_pos = pos+1;
+				defining = false;
+				lname = NULL;
+			}
+		}
+	}
+
+	if (defining) Lexic_Error("Last Token Definition not defined?");
+
+	return vocab;
 }
 
 struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_vocabulary *vocab) {
