@@ -103,6 +103,7 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 	if (spec[1] == 'n') return input[0] == '\n';
 	if (spec[1] == 's') return white_space;
 	if (spec[1] == 'S') return !white_space;
+	if (spec[1] == 't') return input[0] == '\t';
 
 	return false;
 }
