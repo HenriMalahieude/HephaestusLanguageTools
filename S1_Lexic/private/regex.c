@@ -17,6 +17,7 @@ void Regex_Warning(char *msg) {
 
 struct regex* Regex_New_Direct(char *match) {
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
+	def->type = RT_DIRECT;
 
 	char *local_copy = (char *)malloc((strlen(match)+1) * sizeof(char));
 	strcpy(local_copy, match);
@@ -30,6 +31,7 @@ struct regex* Regex_New_Direct(char *match) {
 //Assuming left and right are dynamically created with malloc, but they should be
 struct regex* Regex_New_Or(struct regex *left, struct regex *right) {
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
+	def->type = RT_OR;
  	
 	void *att = malloc(2*sizeof(struct regex*));
 	((struct regex**)att)[0] = left;
@@ -43,6 +45,7 @@ struct regex* Regex_New_Or(struct regex *left, struct regex *right) {
 struct regex* Regex_New_Brackets(char *internals) {
 	if (strlen(internals) <= 0) Regex_Error("New Brackets. internals cannot be len = 0");
 	struct regex *def = (struct regex*)malloc(sizeof(struct regex));
+	def->type = RT_BRACKETS;
 	
 	struct regex **bracket_internals = NULL;
 	int bracket_count = 0;
@@ -100,6 +103,7 @@ struct regex* Regex_New_Sequence(char *seq) {
 	strcpy(local_copy, seq);
 
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->type = RT_SEQUENCE;
 	def->attached_data = local_copy;
 	def->match_function = Regex_Match_Sequence;
 	return def;
@@ -107,6 +111,7 @@ struct regex* Regex_New_Sequence(char *seq) {
 
 struct regex* Regex_New_Qualifier(struct regex *prev, char qualifier) {
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->type = RT_QUALIFIER;
 	def->attached_data = malloc(2*sizeof(long long int));
 	
 	char *ptr_attch = (char *)malloc(sizeof(char));
@@ -125,6 +130,7 @@ struct regex* Regex_New_Escaped(char *special) {
 	strcpy(local_copy, special);
 
 	struct regex *def = (struct regex *)malloc(sizeof(struct regex));
+	def->type = RT_ESCAPED;
 	def->attached_data = local_copy;
 	def->match_function = Regex_Match_Escaped;
 	return def;
