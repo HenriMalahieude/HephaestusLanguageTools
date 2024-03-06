@@ -17,7 +17,7 @@ struct token_definition {
 
 /*Entire Vocabulary Rules*/
 struct token_vocabulary {
-	struct TokenDefinition *definitions;
+	struct token_definition *definitions;
 	int def_count;
 };
 
