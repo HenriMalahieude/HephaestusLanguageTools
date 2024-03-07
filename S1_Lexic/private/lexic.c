@@ -78,9 +78,12 @@ struct token_vocabulary* Lexic_Vocabulary_Make_Stream(char *stream) {
 				if (consume_pos == pos) Lexic_Error("Cannot have an empty token definition.");
 				struct token_definition *def = malloc(sizeof(struct token_definition));
 				def->name = lname;
+				
+				int total = pos - consume_pos;
+				if (stream[pos] == '\n') total -= 1; //Don't include the newline. Let's not waste time
 
-				def->raw_regex = calloc((pos-consume_pos)+1, sizeof(char));
-				strncopy(def->raw_regex, stream+consume_pos, pos-consume_pos);
+				def->raw_regex = calloc(total+1, sizeof(char));
+				strncopy(def->raw_regex, stream+consume_pos, total);
 
 				printf("Lexic Debug: token def regex of %s\n", def->raw_regex);
 				
