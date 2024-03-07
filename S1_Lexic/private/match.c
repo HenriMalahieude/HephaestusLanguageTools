@@ -104,6 +104,14 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 	if (spec[1] == 's') return white_space;
 	if (spec[1] == 'S') return !white_space;
 	if (spec[1] == 't') return input[0] == '\t';
+	if (spec[1] == '[') return input[0] == '[';
+	if (spec[1] == ']') return input[0] == ']';
+	if (spec[1] == '?') return input[0] == '?';
+	if (spec[1] == '*') return input[0] == '*';
+	if (spec[1] == '+') return input[0] == '+';
+	if (spec[1] == '\\') return input[0] == '\\'; //I really should make this more dynamic and less hardcoded dear god
+
+	Regex_Error("Escaped character not valid from definition not valid.");
 
 	return false;
 }
