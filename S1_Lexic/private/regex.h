@@ -27,7 +27,7 @@ void Regex_Error(char *msg);
 void Regex_Warning(char *msg);
 
 
-//Create a Regex
+//Create a Regex (creates a local copy of char* if handed a char*)
 
 struct regex* Regex_New_Direct(char *match);
 
@@ -45,4 +45,6 @@ struct regex* Regex_New_Escaped(char *special);
 //Create a sequence of regex's
 struct regex** Regex_New_Definition(char *definition, int *count);
 
+//Free regexes
+void Regex_Free(struct regex *reg);
 #endif
