@@ -23,4 +23,7 @@ MATCH_FUNC(Regex_Match_Qualifier);
 /*Match "\n" with new line*/
 MATCH_FUNC(Regex_Match_Escaped);
 
+/*Match "00.000" and "39" with [0-9]+(\.[0-9]+)?*/
+MATCH_FUNC(Regex_Match_Group);
+
 #endif

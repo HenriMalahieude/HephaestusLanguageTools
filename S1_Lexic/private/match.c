@@ -3,6 +3,36 @@
 #include "regex.h"
 #include "match.h"
 
+//Defined in regex.h
+bool Regex_Match(struct regex *reg, char *input) {
+	switch (reg->type) {
+		case RT_DIRECT:
+			return Regex_Match_Direct(input, reg->attached_data);
+		case RT_OR:
+			return Regex_Match_Or(input, reg->attached_data);
+		case RT_BRACKETS:
+			return Regex_Match_Brackets(input, reg->attached_data);
+		case RT_SEQUENCE:
+			return Regex_Match_Sequence(input, reg->attached_data);
+		case RT_QUALIFIER:
+			return Regex_Match_Qualifier(input, reg->attached_data);
+		case RT_ESCAPED:
+			return Regex_Match_Escaped(input, reg->attached_data);
+		case RT_GROUP:
+			return Regex_Match_Group(input, reg->attached_data);
+		case RT_UNDEFINED:
+			Regex_Error("Match. Attempted to match an UNDEFINED regex?");
+			break;
+		default:
+			Regex_Error("Match. Fell through switch statement?");
+			break;
+	}
+
+	Regex_Error("Match. Escaped switch statement without return?");
+
+	return false;
+}
+
 bool Regex_Match_Direct(char *input, void *attached_data) {
 	char *direct = (char*)attached_data;
 	return strcmp(input, direct) == 0;
