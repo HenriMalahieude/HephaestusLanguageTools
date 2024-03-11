@@ -1,4 +1,5 @@
 #include <string.h>
+#include <ctype.h>
 #include <stdio.h>
 #include "regex.h"
 
@@ -92,10 +93,7 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 
 	if (spec[0] != '\\') Regex_Error("Match Escaped. Wasn't escaped?");
 
-	bool white_space = (
-		input[0] == (char)32 || //space
-		((int)input[0] >= 9 && (int)input[0] <= 13) //h-vtab, nline, npage, carret
-	);
+	bool white_space = isspace(input[0]);
 
 	if (spec[1] == '-') return input[0] == '-';
 	if (spec[1] == '.') return input[0] == '.';
@@ -116,7 +114,35 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 }
 
 MATCH_FUNC(Regex_Match_Group) {
-	//TODO
+	int len = ((unsigned long long *)reg.attached_data)[0];
+	struct regex *grp = ((unsigned long long *)reg.attached_data)[1];
+
+	size_t consumed = 0;
+	int grp_pos = 0;
+	bool matched_last = false;
+	
+	char substr[100];
+	for (size_t i = 0; i < strlen(input); i++) {
+		if (i-consumed > 99) Regex_Error("Match Group. Could not match input given. Reached 99 char limit.");
+		strncpy(substr, input+consumed, i-consumed);
+		substr[i-consumed+1] ='\0';
+
+		if (grp_pos >= len) break; //we've matched all within the group
+
+		if (Regex_Match(grp[grp_pos], substr)) {
+			matched_last = true;
+			if (i >= (strlen(input)-1)) consumed = i;
+		} else {
+			if (matched_last) {
+				matched_last = false;
+				consumed = i-1;
+				grp_pos++;
+				i--; //Redo but this time without extra baggage (beginning chars)
+			}
+		}
+	}
+
+	return (grp_pos >= len && consumed >= (strlen(input)-1));
 }
 
 //Defined in regex.h
