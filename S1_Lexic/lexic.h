@@ -10,8 +10,7 @@ struct token_definition {
 	char *name;
 	char *raw_regex;
 
-	//Array/Sequence of matches before this token is fully matched
-	struct regex **definition; 
+	struct regex *sequence; //Can think of a token_definition as a "RT_GROUP"
 	int reg_count;
 };
 
@@ -30,8 +29,8 @@ struct token_instance {
 };
 
 /*Make Lexical Vocabulary*/
-struct token_vocabulary* Lexic_Vocabulary_Make_File(char *file_name);
-struct token_vocabulary* Lexic_Vocabulary_Make_Stream(char *stream);
+struct token_vocabulary Lexic_Vocabulary_Make_File(char *file_name);
+struct token_vocabulary Lexic_Vocabulary_Make_Stream(char *stream);
 
 /*Read File and Create a NULL-Terminated Token Stream*/
 struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_vocabulary *vocab);

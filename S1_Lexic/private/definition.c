@@ -1,8 +1,8 @@
 #include <string.h>
 #include "regex.h"
 
-struct regex** Regex_New_Definition(char *definition, int *count) {
-	struct regex **sequence = NULL;
+struct regex* Regex_New_Definition(char *definition, int *count) {
+	struct regex *sequence = NULL;
 	*count = 0;
 
 	size_t consume_pos = 0, end_pos = strlen(definition)-1;
@@ -36,24 +36,19 @@ struct regex** Regex_New_Definition(char *definition, int *count) {
 
 	printf("\tRegex Debug: trimmed definition is '%s'\n", trimmed_internals);
 	
-	struct regex *group = Regex_New_Group(trimmed_internals);
+	struct regex group = Regex_New_Group(trimmed_internals);
 	if (group->type != RT_GROUP) {
-		sequence = malloc(sizeof(struct regex *));
+		sequence = malloc(sizeof(struct regex));
 		sequence[0] = group;
 		*count = 1;
 	} else {
-		*count = *(int*)((long long int *)group->attached_data)[0];
-		sequence = (struct regex **)((long long int *)group->attached_data)[1];
+		*count = ((unsigned long long *)group->attached_data)[0];
+		sequence = (struct regex *)((unsigned long long *)group->attached_data)[1];
 		
 		//Precautions
-		group->type = RT_UNDEFINED;
-		group->match_function = NULL;
-
-		free(group->attached_data);
-		group->attached_data = NULL; //more precautions
-
-		free(group);
-		group = NULL:
+		group.type = RT_UNDEFINED;
+		free(group.attached_data);
+		group.attached_data = NULL;
 	}
 
 	return sequence;
