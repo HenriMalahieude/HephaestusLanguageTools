@@ -7,7 +7,7 @@ void SequenceTest() {
 #endif
 
 	char seq[4] = "0-9";
-	struct regex *sequence = Regex_New_Sequence(seq);
+	struct regex sequence = Regex_New_Sequence(seq);
 
 #ifdef VERBOSE
 	printf("[.] Initialized Sequence Regex\n");
@@ -16,14 +16,14 @@ void SequenceTest() {
 	char send[2] = "0";
 	for (int i = (int)'0'; i <= (int)'9'; i++) {
 		send[0] = (char)i;
-		TEST_REGEX_TRUE(send, sequence);
+		TEST_REGEX(sequence, send, true);
 	}
 
-	TEST_REGEX_FALSE("A", sequence);
+	TEST_REGEX(sequence, "A", false);
 
-	TEST_REGEX_FALSE("a", sequence);
+	TEST_REGEX(sequence, "a", false);
 	
-	TEST_REGEX_FALSE("\n", sequence);
+	TEST_REGEX(sequence, "\n", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Sequence Test Finished\n");

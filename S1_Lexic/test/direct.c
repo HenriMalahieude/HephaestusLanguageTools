@@ -1,36 +1,32 @@
+#define TEST_NAME "Direct"
 #include "regex_helper.h"
 
-#undef TEST_NAME
-#define TEST_NAME "Direct"
-
 void DirectTest() {
-	#ifdef VERBOSE
+#ifdef VERBOSE
 	printf("[!] Regex Direct Test Start\n");
-	#endif
+#endif
 
 	char match[4] = "int";
-	struct regex *direct = Regex_New_Direct(match);
+	struct regex direct = Regex_New_Direct(match);
 
-	#ifdef VERBOSE
+#ifdef VERBOSE
 	printf("[.] Initialized Direct Regex\n");
-	#endif
+#endif
 
 
-	TEST_REGEX_FALSE("\0", direct);
+	TEST_REGEX(direct, "", false);
 	
-	TEST_REGEX_FALSE("i\0", direct);
+	TEST_REGEX(direct, "i", false);
 	
-	TEST_REGEX_FALSE("in\0", direct);
+	TEST_REGEX(direct, "in", false);
 
-	TEST_REGEX_TRUE("int\0", direct);
+	TEST_REGEX(direct, "int", true);
 
-	TEST_REGEX_FALSE("double\0", direct);
+	TEST_REGEX(direct, "double", false);
 
-	TEST_REGEX_FALSE("dobby!!!!", direct);
-
-	#ifdef VERBOSE
+#ifdef VERBOSE
 	printf("[!] Regex Direct Test Finished\n");
-	#endif
+#endif
 }
 
 #ifndef ALL_TESTS

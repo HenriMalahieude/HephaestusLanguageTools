@@ -1,7 +1,5 @@
-#include "regex_helper.h"
-
-#undef TEST_NAME
 #define TEST_NAME "Brackets"
+#include "regex_helper.h"
 
 void BracketTest() {
 
@@ -10,45 +8,45 @@ void BracketTest() {
 #endif
 
 	char list[4] = "abc";
-	struct regex *brackets1 = Regex_New_Brackets(list);
+	struct regex brackets1 = Regex_New_Brackets(list);
 	
+	char seq[8] = "a-zA-Z_";
+	struct regex brackets2 = Regex_New_Brackets(seq);
+
 #ifdef VERBOSE
 	printf("[!] Initialized 2 Bracket Regexes\n");
 #endif
 
 	//Single characters
-	TEST_REGEX_TRUE("a", brackets1);
+	TEST_REGEX(brackets1, "a", true);
 
-	TEST_REGEX_TRUE("b", brackets1);
+	TEST_REGEX(brackets1, "b", true);
 
-	TEST_REGEX_TRUE("c", brackets1);
+	TEST_REGEX(brackets1, "c", true);
 
-	TEST_REGEX_FALSE("ad", brackets1);
+	TEST_REGEX(brackets1, "ad", false);
 
-	TEST_REGEX_FALSE("bd", brackets1);
+	TEST_REGEX(brackets1, "bd", false);
 	
-	TEST_REGEX_FALSE("cd", brackets1);
-
-	char seq[8] = "a-zA-Z_";
-	struct regex *brackets2 = Regex_New_Brackets(seq);
+	TEST_REGEX(brackets1, "cd", false);
 
 	//Sequences
-	TEST_REGEX_TRUE("_", brackets2);
+	TEST_REGEX(brackets2, "_", true);
 
 	char send[2] = "a";
 	for (int i = (int)'a'; i <= (int)'z'; i++) {
 		send[0] = (char)i;
-		TEST_REGEX_TRUE(send, brackets2); 
+		TEST_REGEX(brackets2, send, true); 
 	}
 
 	send[0] = 'A';
 	for (int i = (int)'A'; i <= (int)'Z'; i++) {
 		send[0] = (char)i;
-		TEST_REGEX_TRUE(send, brackets2);
+		TEST_REGEX(brackets2, send, true);
 	}
 	
-	TEST_REGEX_FALSE("9", brackets2);
-	TEST_REGEX_FALSE("2", brackets2);
+	TEST_REGEX(brackets2, "9", false);
+	TEST_REGEX(brackets2, "2", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Bracket Test Finished\n");
