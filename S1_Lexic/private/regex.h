@@ -40,5 +40,5 @@ bool Regex_Match(struct regex reg, char *input);
 struct regex* Regex_New_Definition(char *definition, int *count);
 
 //Free regex's
-void Regex_Free(struct regex *reg);
+void Regex_Free(struct regex reg);
 #endif

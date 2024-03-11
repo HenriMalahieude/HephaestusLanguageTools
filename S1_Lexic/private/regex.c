@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "../lexic.h"
 #include "regex.h"
+
+extern int regex_line_no;
+extern int regex_colu_no;
 
 void Regex_Error(char *msg) {
 	printf("Regex Error @ L%d, C%d:\n%s\n", regex_line_no, regex_colu_no, msg);
@@ -31,8 +32,8 @@ struct regex Regex_New_Or(struct regex left, struct regex right) {
 	reg.type = RT_OR;
  	
 	reg.attached_data = malloc(2*sizeof(struct regex));
-	((struct regex *)reg->attached_data)[0] = left;
-	((struct regex *)reg->attached_data)[1] = right;
+	((struct regex *)reg.attached_data)[0] = left;
+	((struct regex *)reg.attached_data)[1] = right;
 
 	return reg;
 }
@@ -71,7 +72,7 @@ struct regex Regex_New_Brackets(char *internals) {
 				i++; //this moves i to nex, then eol will move i to after nex
 			} else {
 				substr[0] = cur;
-				lit_regex = Regex_New_Direct(lit);
+				lit_regex = Regex_New_Direct(substr);
 				//No need for special movement
 			}
 
@@ -119,7 +120,7 @@ struct regex Regex_New_Qualifier(struct regex prev, char qualifier) {
 	return reg;
 }
 
-struct regex* Regex_New_Escaped(char *special) {
+struct regex Regex_New_Escaped(char *special) {
 	if (strlen(special) != 2) Regex_Error("New Escaped. Not given len = 2");
 	
 	struct regex reg;
@@ -174,30 +175,30 @@ struct regex Regex_New_Group(char *internals) {
 			} else if (cur == '[') {
 				mode = RT_BRACKETS;
 			} else if (cur == '|') {
-				mode == RT_OR;
+				mode = RT_OR;
 			} else if (i == (strlen(internals)-1)) {
 				mode = RT_UNDEFINED; //end of internals
 			}
 
 			if (consume_pos >= (i-1)) {
-				if (mode == RT_QUALIFIER && *count == 0) Regex_Error("Missing Regex for Qualifier");
-				if (mode == RT_OR && *count == 0) Regex_Error("Missing Regex for Or");
+				if (mode == RT_QUALIFIER && count == 0) Regex_Error("Missing Regex for Qualifier");
+				if (mode == RT_OR && count == 0) Regex_Error("Missing Regex for Or");
 				consume_pos++;
 			} else if (mode != RT_DIRECT) {
 				int j = (mode == RT_UNDEFINED) ? i : i - 1;
-				strncopy(substr, definition+consume_pos, j-consume_pos);
+				strncpy(substr, internals+consume_pos, j-consume_pos);
 				substr[j-consume_pos+1] = '\0';
 				
-				add_to_group(&grouping, &count, Regex_New_Direct(substr));	
+				add_to_grouping(&grouping, &count, Regex_New_Direct(substr));	
 
 				consume_pos = i+1;
 			}
 		} else if (mode == RT_GROUP) {
 			if (cur == ')' && internals[i-1] != '\\') {
-				strncopy(substr, internals+consume_pos, (i-1)-consume_pos);
+				strncpy(substr, internals+consume_pos, (i-1)-consume_pos);
 				substr[i-consume_pos] = '\0';
 
-				add_to_group(&grouping, &count, Regex_New_Group(substr));
+				add_to_grouping(&grouping, &count, Regex_New_Group(substr));
 
 				mode = RT_DIRECT;
 				consume_pos = i+1;
@@ -207,23 +208,23 @@ struct regex Regex_New_Group(char *internals) {
 		} else if (mode == RT_ESCAPED) {
 			substr[0] = '\\'; substr[1] = cur; substr[2] = '\0';
 
-			add_to_group(&grouping, &count, Regex_New_Escaped(substr));
+			add_to_grouping(&grouping, &count, Regex_New_Escaped(substr));
 
 			mode = RT_DIRECT;
 			consume_pos = i+1;
 		} else if (mode == RT_QUALIFIER) {
-			struct regex *last = grouping[*count-1];
-			if (last->type == RT_QUALIFIER) Regex_Error("Cannot have a qualified qualifier.");
+			struct regex last = grouping[count-1];
+			if (last.type == RT_QUALIFIER) Regex_Error("Cannot have a qualified qualifier.");
 
 			char qualifier = internals[i-1];
-			if (last->type == RT_OR) {
-				struct regex *or_item = ((struct regex **)last->attached_data)[1];
-				if (or_item->type == RT_QUALIFIER) Regex_Error("Cannot have a qualified qualifier.");
-				struct regex *qualified = Regex_New_Qualifier(or_item, qualifier);
-				((struct regex **)last->attached_data)[1] = qualified;
+			if (last.type == RT_OR) {
+				struct regex or_item = ((struct regex *)last.attached_data)[1];
+				if (or_item.type == RT_QUALIFIER) Regex_Error("Cannot have a qualified qualifier.");
+				struct regex qualified = Regex_New_Qualifier(or_item, qualifier);
+				((struct regex *)last.attached_data)[1] = qualified;
 			} else {
-				struct regex *qualified = Regex_New_Qualifier(last, qualifier);
-				grouping[*count-1] = qualified;
+				struct regex qualified = Regex_New_Qualifier(last, qualifier);
+				grouping[count-1] = qualified;
 			}
 
 			mode = RT_DIRECT;
@@ -231,10 +232,10 @@ struct regex Regex_New_Group(char *internals) {
 			i--; //for loop gonna push it forward, this brings that back
 		} else if (mode == RT_BRACKETS) {
 			if (cur == ']' && internals[i-1] != '\\') {
-				strncopy(substr, definition+consume_pos, (i-1)-consume_pos);
+				strncpy(substr, internals+consume_pos, (i-1)-consume_pos);
 				substr[i-consume_pos] = '\0';
 
-				add_to_group(&grouping, &count, Regex_New_Brackets(substr));
+				add_to_grouping(&grouping, &count, Regex_New_Brackets(substr));
 
 				mode = RT_DIRECT;
 				consume_pos = i+1;
@@ -245,7 +246,7 @@ struct regex Regex_New_Group(char *internals) {
 			int len = strlen(internals) - consume_pos;
 			if (len <= 0) Regex_Error("Cannot Or with nothing. '|' at end of group/definition.");
 
-			strncopy(substr, internals+consume_pos, len);
+			strncpy(substr, internals+consume_pos, len);
 			substr[len+1] = '\0';
 
 			if (count <= 0) Regex_Error("Cannot Or with nothing. '|' at beginning of group/definition.");
@@ -256,8 +257,8 @@ struct regex Regex_New_Group(char *internals) {
 				all_prev.type = RT_GROUP;
 				all_prev.attached_data = malloc(2*sizeof(unsigned long long));
 				
-				((unsigned long long *)all_prev->attached_data)[0] = (unsigned long long)count;
-				((unsigned long long *)all_prev->attached_data)[1] = (unsigned long long)grouping;
+				((unsigned long long *)all_prev.attached_data)[0] = (unsigned long long)count;
+				((unsigned long long *)all_prev.attached_data)[1] = (unsigned long long)grouping;
 			} else { //count == 1
 				all_prev = grouping[0];
 				free(grouping); //no longer needed
@@ -279,10 +280,9 @@ struct regex Regex_New_Group(char *internals) {
 		return only;
 	}
 	
-	reg->match_function = Regex_Match_Group;
-	reg->attached_data = malloc(2*sizeof(unsigned long long));
-	((long long int *)reg->attached_data)[0] = (long long int)count;//not a pointer
-	((long long int *)reg->attached_data)[1] = (long long int)grouping;
+	reg.attached_data = malloc(2*sizeof(unsigned long long));
+	((long long int *)reg.attached_data)[0] = (long long int)count;//not a pointer
+	((long long int *)reg.attached_data)[1] = (long long int)grouping;
 	
 	return reg;
 }

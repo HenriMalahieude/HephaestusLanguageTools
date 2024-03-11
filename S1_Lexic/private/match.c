@@ -21,15 +21,15 @@ MATCH_FUNC(Regex_Match_Or) {
 	return L || R;
 }
 
-MATCH_FUNC(Regex_Match_Brackets) {
+MATCH_FUNC(Regex_Match_Brackets) { //basically a magnificent or for single chars
 	if (strlen(input) != 1) return false; //only consumes one character
 	
 	int blen = ((unsigned long long *)attached_data)[0];
-	struct regex *brkts = ((unsigned long long *)attached_data)[1];
+	struct regex *brkts = (struct regex *)((unsigned long long *)attached_data)[1];
 
 	for (int i = 0; i < blen; i++) {
 		struct regex using = brkts[i];
-		if (Regex_Match(input, using)) return true;
+		if (Regex_Match(using, input)) return true;
 	}
 
 	return false;
@@ -51,8 +51,8 @@ MATCH_FUNC(Regex_Match_Sequence) {
 
 //Qualifiers Implemented: ?, +, *,
 MATCH_FUNC(Regex_Match_Qualifier) { 
-	char qualifier = ((unsigned long long *)reg.attached_data)[0];
-	struct regex *reg = ((unsigned long long *)reg.attached_data)[1];
+	char qualifier = ((unsigned long long *)attached_data)[0];
+	struct regex *reg = (struct regex *)((unsigned long long *)attached_data)[1];
 
 	unsigned int match_count = 0; 
 	size_t consume_count = 0; 
@@ -114,8 +114,8 @@ bool Regex_Match_Escaped(char *input, void *attached_data) {
 }
 
 MATCH_FUNC(Regex_Match_Group) {
-	int len = ((unsigned long long *)reg.attached_data)[0];
-	struct regex *grp = ((unsigned long long *)reg.attached_data)[1];
+	int len = ((unsigned long long *)attached_data)[0];
+	struct regex *grp = (struct regex *)((unsigned long long *)attached_data)[1];
 
 	size_t consumed = 0;
 	int grp_pos = 0;
