@@ -119,30 +119,39 @@ MATCH_FUNC(Regex_Match_Group) {
 
 	size_t consumed = 0;
 	int grp_pos = 0;
-	bool matched_last = false;
 	
 	char substr[100];
-	for (size_t i = 0; i < strlen(input); i++) {
-		if (i-consumed > 99) Regex_Error("Match Group. Could not match input given. Reached 99 char limit.");
-		strncpy(substr, input+consumed, i-consumed);
-		substr[i-consumed+1] ='\0';
-
+	substr[0] = '\0';
+	for (size_t i = 0; i <= strlen(input)+1; i++) { //include the \0
 		if (grp_pos >= len) break; //we've matched all within the group
 
+		if (i-consumed > 99) Regex_Error("Match Group. Reached 99 char limit.");
+		size_t sublen = i-consumed;
+		if (sublen > 0) strncpy(substr, input+consumed, sublen);
+		substr[sublen] = '\0';
+
+		//printf("%d: '%s' (%d)\n", i, substr, sublen);
+
 		if (Regex_Match(grp[grp_pos], substr)) {
-			matched_last = true;
-			if (i >= (strlen(input)-1)) consumed = i;
-		} else {
-			if (matched_last) {
-				matched_last = false;
-				consumed = i-1;
-				grp_pos++;
-				i--; //Redo but this time without extra baggage (beginning chars)
+			if (i >= strlen(input)) {
+				consumed = i;
+				grp_pos += 1;
+				break;
+			}
+			//Look ahead
+			strncpy(substr, input+consumed, sublen+1);
+			substr[sublen+2] = '\0';
+			
+			if (!Regex_Match(grp[grp_pos], substr)) {
+				consumed = i;
+				grp_pos += 1;
+				i--;
 			}
 		}
 	}
 
-	return (grp_pos >= len && consumed >= (strlen(input)-1));
+	//printf("grp_pos: %d; consumed_i: %d; strlen: %d\n", grp_pos, consumed, strlen(input));
+	return (grp_pos >= len && consumed >= strlen(input));
 }
 
 //Defined in regex.h
