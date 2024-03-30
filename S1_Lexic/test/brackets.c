@@ -34,6 +34,11 @@ void BracketTest() {
 	
 	TEST_REGEX(seq, "9", false);
 	TEST_REGEX(seq, "2", false); //*/
+	
+	TEST_REGEX("a[bc]", "ac", true);
+	TEST_REGEX("a[bc]", "ab", true);
+	TEST_REGEX("a[bc]", "b", false);
+	TEST_REGEX("a[bc]", "ad", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Bracket Test Finished\n");

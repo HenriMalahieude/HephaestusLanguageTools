@@ -42,8 +42,10 @@ bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
 	
 	size_t q_ind = (cur == '\\') ? *ri+2 : *ri+1;
 	char qualifier = reg[q_ind];
-	if (qualifier == '+' && !plus_match) return false;
+	if (qualifier == '+' && !(*plus_match)) return false;
 	
+	Lexic_Warn("Recovering from failed qualifier", LWT_DEBUG);
+
 	*plus_match = false;
 	*ri = q_ind+1; //skip past this modifier
 	return true;
@@ -120,15 +122,14 @@ bool Regex_Match(char *reg, char *input) {
 	int grp_lvl = 0; //capture group recursion lvl
 	size_t ii = 0; //Input Index
 	size_t ri = 0; //Regex Index
-	size_t bt_reg[10]; size_t rt_ind = 0; //stack of back track indices for regex returns; ie (asdf)* needs to go back to ( when evaluating *
-	size_t bt_inp[10]; size_t it_ind = 0; //stack of back track indices for input retursn; ie abc|acb where abc fails, and we must return to beginning of input
-	bt_reg[0] = 0; bt_inp[0] = 0;
 
 	enum regex_type mode = RT_UNDEFINED;
 	while (ii <= ilen && ri < rlen) { //NOTE: <= for if we need to catch ?'s at the end
 		char prv = (ri > 0) ? reg[ri-1] : '\0';
 		char cur = reg[ri];
 		char nxt = reg[ri+1];
+
+		//printf("ii: %lld, ilen: %lld, ri: %lld, rlen: %lld\n", ii, ilen, ri, rlen);
 
 		if (mode == RT_UNDEFINED) {
 			if (cur == '\\') {mode = RT_ESCAPED;}
@@ -143,30 +144,31 @@ bool Regex_Match(char *reg, char *input) {
 				ri++; //onto nxt regex
 			} else {
 				if (is_qualifier(nxt)) {
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) return false;
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
 				} else {
-					if (grp_lvl <= 0) return false;
+					if (grp_lvl <= 0) break;
 					lst_grp_fail = true;
 					forward_cgroup(reg, &ri); 
 				}
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_ESCAPED) {
+			//printf("escaped\n");
 			if (escaped_match(nxt, input[ii])) {
 				ii++;
 				ri+=2; //skip \\ and escaped char
 			} else {
-				if (is_qualifier(nxt)) {
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) return false;
+				if (is_qualifier(reg[ri+2])) {
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
 				} else {
-					if (grp_lvl <= 0) return false;
+					if (grp_lvl <= 0) break;
 					lst_grp_fail = true;
 					forward_cgroup(reg, &ri);
 				}
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
-			if (grp_lvl <= 0) return true;
+			if (grp_lvl <= 0) return ii >= ilen;
 			lst_grp_fail = false;
 			forward_cgroup(reg, &ri);
 			mode = RT_UNDEFINED;
@@ -178,7 +180,7 @@ bool Regex_Match(char *reg, char *input) {
 			while (ri < rlen) {
 				char bcur = reg[ri];
 
-				char str[] = "Checking   vs  "; str[9] = matching; str[14] = bcur;
+				char str[] = "Checking _ vs _"; str[9] = matching; str[14] = bcur;
 				Lexic_Warn(str, LWT_DEBUG);
 
 				if (bcur == ']') {ri++; break;}
@@ -208,13 +210,39 @@ bool Regex_Match(char *reg, char *input) {
 					if (reg[ri] == ']') {ri++; break;}
 					ri++;
 				}
-				Lexic_Warn("Match. Moved regex state past brackets!", LWT_DEBUG);
+			} else {
+				if (is_qualifier(reg[ri])) {
+					ri--;
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
+				} else {
+					if (grp_lvl <= 0) break;
+					lst_grp_fail = true;
+					forward_cgroup(reg, &ri);
+				}
 			}
 
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_QUALIFIER) {
-			printf("qualifier success unimplemented\n");
-			return false;
+			if (prv == '\\') Lexic_Error("Match. Cannot enter qualifier mode if previous is escaped, what?");
+			if (cur == '?') {
+				ri++;
+				mode = RT_UNDEFINED;
+				continue;
+			}
+
+			plus_quali = true;
+			if (prv == ')' && reg[ri-2] != '\\') {
+				restart_cgroup(reg, &ri);
+			} else if (prv == ']' && reg[ri-2] != '\\') {
+				while (ri > 0) {
+					if (reg[ri] == '[' && reg[ri-1] != '\\') break;
+					ri--;
+				}
+			} else {
+				if (reg[ri-2] == '\\') ri--;
+				ri--;
+			}
+
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_CGROUP) {
 			printf("cgroup unimplemented\n");
@@ -223,5 +251,6 @@ bool Regex_Match(char *reg, char *input) {
 		}
 	}
 
+	//printf("Match end: %d >= %d && %d >= %d\n", ii, ilen, ri, rlen);
 	return ii >= ilen && ri >= rlen;
 }
