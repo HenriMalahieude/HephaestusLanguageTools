@@ -7,22 +7,22 @@ void DirectTest() {
 #endif
 
 	char match[4] = "int";
-	struct regex direct = Regex_New_Direct(match);
-
 #ifdef VERBOSE
 	printf("[.] Initialized Direct Regex\n");
 #endif
 
 
-	TEST_REGEX(direct, "", false);
+	TEST_REGEX(match, "", false);
 	
-	TEST_REGEX(direct, "i", false);
+	TEST_REGEX(match, "i", false);
 	
-	TEST_REGEX(direct, "in", false);
+	TEST_REGEX(match, "in", false);
 
-	TEST_REGEX(direct, "int", true);
+	TEST_REGEX(match, "int", true);
+	
+	TEST_REGEX(match, "integer", false);
 
-	TEST_REGEX(direct, "double", false);
+	TEST_REGEX(match, "double", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Direct Test Finished\n");
@@ -36,6 +36,7 @@ int regex_colu_no = 0;
 int test_count = 1;
 
 int main(void) {
+	warn_level = LWT_DEBUG;
 	DirectTest();
 	return 0;
 }

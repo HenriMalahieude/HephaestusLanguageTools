@@ -1,17 +1,25 @@
 #ifndef __HEPHAESTUS_LEXICAL_ANALYZER__
 #define __HEPHAESTUS_LEXICAL_ANALYZER__
 
-struct regex;
 extern int regex_line_no;
 extern int regex_colu_no;
+
+enum lex_warn_type {
+	LWT_SILENT = 0,
+	LWT_MJRWRN,
+	LWT_STDWRN,
+	LWT_VERBSE,
+	LWT_DEBUG
+};
+
+extern enum lex_warn_type warn_level; //only warn about this and more important
+void Lexic_Error(char *msg);
+void Lexic_Warn(char *msg, enum lex_warn_type type);
 
 /*Definition of a Token*/
 struct token_definition {
 	char *name;
-	char *raw_regex;
-
-	struct regex *sequence; //Can think of a token_definition as a "RT_GROUP"
-	int reg_count;
+	char *regex;
 };
 
 /*Entire Vocabulary Rules*/

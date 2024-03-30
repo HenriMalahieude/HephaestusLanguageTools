@@ -5,15 +5,6 @@
 int regex_line_no = 0;
 int regex_colu_no = 0;
 
-void Lexic_Error(char *msg) {
-	printf("Lexic Error @ L%d, C%d: %s\n", regex_line_no, regex_colu_no, msg);
-	exit(1);
-}
-
-void Lexic_Warn(char *msg) {
-	printf("Lexic Warning @ L%d, C%d: %s\n", regex_line_no, regex_colu_no, msg);
-}
-
 //NOTE: Dynamically allocates a string. Expects it to be freed by caller
 char* ftostr(char *file_name) {
 	FILE *read_from = fopen(file_name, "r");
@@ -53,39 +44,7 @@ struct token_vocabulary Lexic_Vocabulary_Make_File(char *file_name) {
 struct token_vocabulary Lexic_Vocabulary_Make_Stream(char *stream) {
 	regex_line_no = 1;
 	regex_colu_no = 1;
-
-	size_t consume_pos = 0;
-	struct token_vocabulary vocab;
-	vocab.definitions = NULL;
-	vocab.def_count = 0;
-	
-	bool defining = false;
-	char *lname = NULL;
-	for (size_t pos = 0; pos < strlen(stream); pos++) {
-		char cur = stream[pos];
-
-		if (!defining && cur == '\n') {
-			consume_pos = pos+1;
-		} else if (!defining && cur == ':') { //Token Name
-			lname = calloc(pos - consume_pos + 1, sizeof(char);
-			strncpy(lname, stream+consume_pos, pos - consume_pos);
-			//TODO: Eliminate Whitespace
-
-		} else if (defining && cur == '\n') { //Token Definition
-			
-		}
-
-		if (cur == '\n') {
-			regex_line_no += 1;
-			regex_colu_no = 1;
-		} else {
-			regex_colu_no += 1;
-		}
-	}
-
-	if (defining) Lexic_Error("Cannot have an empty token definition ??");
-
-	return vocab;
+	//TODO
 }
 
 struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_vocabulary *vocab) {
@@ -98,7 +57,7 @@ struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_voc
 }
 
 struct token_instance* Lexic_Token_Stream_String(char *stream, struct token_vocabulary *vocab) {
-
+	//TODO
 }
 
 char ** Lexic_Token_Name_Stream_File(char *file_name, struct token_vocabulary *vocab) {

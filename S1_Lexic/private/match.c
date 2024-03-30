@@ -1,185 +1,227 @@
 #include <string.h>
+#include <stdio.h> //while printf is being used
 #include <ctype.h>
-#include <stdio.h>
+
+#include "../lexic.h"
 #include "regex.h"
 
-#define MATCH_FUNC(name) bool name(char *input, void *attached_data)
+enum regex_type {
+	RT_UNDEFINED,
+	RT_DIRECT, 
+	RT_ESCAPED,
+	RT_OR,
+	RT_BRACKETS,
+	RT_QUALIFIER,
+	RT_CGROUP,
+};
 
-MATCH_FUNC(Regex_Match_Direct) {
-	return strcmp(input, (char *)attached_data) == 0;
+bool escaped_match(char esc, char in) {
+	if (esc == 's') return isspace(in);
+	if (esc == 'S') return !isspace(in);
+	if (esc == 'd') return in >= (int)'0' && in <= (int)'9';
+	if (esc == 'D') return in < (int)'0' || in > (int)'9';
+	if (esc == '0') return in == '\0'; //dunno if this is really useful
+	if (esc == 'n') return in == '\n';
+	if (esc == 't') return in == '\t';
+	if (esc == 'r') return in == '\r';
+
+	return esc == in;
 }
 
-MATCH_FUNC(Regex_Match_Or) {
-	struct regex left = ((struct regex*)attached_data)[0];
-	struct regex right = ((struct regex*)attached_data)[1];
-
-	bool L = Regex_Match(left, input); 
-	bool R = false;
-	
-	//Short-Circuiting is a thing
-	if (!L) R = Regex_Match(right, input);
-	return L || R;
+bool is_qualifier(char q) {
+	return q == '*' || q == '?' || q == '+';
 }
 
-MATCH_FUNC(Regex_Match_Brackets) { //basically a magnificent or for single chars
-	if (strlen(input) != 1) return false; //only consumes one character
-	
-	int blen = ((unsigned long long *)attached_data)[0];
-	struct regex *brkts = (struct regex *)((unsigned long long *)attached_data)[1];
+//If failed escaped, DO NOT move past \ pls, let this function handle it
+//returns whether or not it recovered properly
+bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
+	if (*ri >= strlen(reg)) Lexic_Error("_recover_failed_qualifier. Regex Index already at end of str?");
 
-	for (int i = 0; i < blen; i++) {
-		struct regex using = brkts[i];
-		if (Regex_Match(using, input)) return true;
+	char cur = reg[*ri];
+	if (is_qualifier(cur)) Lexic_Error("_recover_failed_qualifier. Incorrect use of this function on qualifier?");
+	
+	size_t q_ind = (cur == '\\') ? *ri+2 : *ri+1;
+	char qualifier = reg[q_ind];
+	if (qualifier == '+' && !plus_match) return false;
+	
+	*plus_match = false;
+	*ri = q_ind+1; //skip past this modifier
+	return true;
+}
+
+//regex control take over ahead?
+enum regex_type get_ctrl_ahead(char *reg, size_t reg_ind, size_t *ind, char *mod) {
+	int paren_lvl = 0;
+	for (size_t i = reg_ind+1; i <= strlen(reg); i++) {
+		char prv = (i > 0) ? reg[i-1] : '\0';
+		*mod = reg[i];
+		*ind = i;
+
+		if (is_qualifier(*mod)) return RT_QUALIFIER;
+
+		if (prv != '\\' && *mod == '|') return RT_OR;
+
+		if (prv != '\\' && *mod == '(') paren_lvl++;
+		if (prv != '\\' && *mod == ')' && paren_lvl == 0) return RT_CGROUP;
+		if (prv != '\\' && *mod == ')' && paren_lvl > 0) paren_lvl--;
 	}
 
-	return false;
+	return RT_DIRECT; //NOTE: we only want modifiers that take control, escaped doesn't, nor does brackets
 }
 
-MATCH_FUNC(Regex_Match_Sequence) {
-	if (strlen(input) != 1) return false; //only consumes one character
-
-	int ascii_input = (int)*input;
-
-	char *seq = (char*)attached_data;
-	int from = (int)seq[0]; 
-	int to   = (int)seq[2]; // ie: a-z, index 1 is '-'
-
-	if (from >= to) Regex_Error("Match Sequence. Sequence 'from' >= 'to'?");
-	
-	return ascii_input >= from && ascii_input <= to;
-}
-
-//Qualifiers Implemented: ?, +, *,
-MATCH_FUNC(Regex_Match_Qualifier) { 
-	char qualifier = ((unsigned long long *)attached_data)[0];
-	struct regex *reg = (struct regex *)((unsigned long long *)attached_data)[1];
-
-	unsigned int match_count = 0; 
-	size_t consume_count = 0; 
-
-	size_t start = 0; 
-	char substring[100]; size_t subs_len = 0;
-	for (size_t end = 1; end <= strlen(input); end++) { //"<=" since end is exclusive
-		if (start >= strlen(input)) break; //No reason for it to be, but never know
-		
-		//forward the substring
-		if (start + subs_len < strlen(input)) {
-			substring[subs_len] = input[start+subs_len]; //next char
-			substring[subs_len+1] = '\0'; //end string
-			subs_len++; //inc size
-		}
-		
-		if (Regex_Match(*reg, substring)) { //"consume"
-			match_count++;
-			start = end;
-			consume_count += subs_len;
-			subs_len = 0;
-		}
-	}
-
-	if (consume_count < strlen(input)) return false; 
-
-	if (qualifier == '?') return match_count <= 1;
-	if (qualifier == '*') return true; //doesn't matter for zero or more
-	if (qualifier == '+') return match_count >= 1;
-
-	return false;
-}
-
-bool Regex_Match_Escaped(char *input, void *attached_data) {
-	if (strlen(input) != 1) return false;
-
-	char *spec = (char*)attached_data;
-
-	if (spec[0] != '\\') Regex_Error("Match Escaped. Wasn't escaped?");
-
-	bool white_space = isspace(input[0]);
-
-	if (spec[1] == '-') return input[0] == '-';
-	if (spec[1] == '.') return input[0] == '.';
-	if (spec[1] == 'n') return input[0] == '\n';
-	if (spec[1] == 's') return white_space;
-	if (spec[1] == 'S') return !white_space;
-	if (spec[1] == 't') return input[0] == '\t';
-	if (spec[1] == '[') return input[0] == '[';
-	if (spec[1] == ']') return input[0] == ']';
-	if (spec[1] == '?') return input[0] == '?';
-	if (spec[1] == '*') return input[0] == '*';
-	if (spec[1] == '+') return input[0] == '+';
-	if (spec[1] == '\\') return input[0] == '\\'; //I really should make this more dynamic and less hardcoded dear god
-
-	Regex_Error("Escaped character not valid from definition not valid.");
-
-	return false;
-}
-
-MATCH_FUNC(Regex_Match_Group) {
-	int len = ((unsigned long long *)attached_data)[0];
-	struct regex *grp = (struct regex *)((unsigned long long *)attached_data)[1];
-
-	size_t consumed = 0;
-	int grp_pos = 0;
-	
-	char substr[100];
-	substr[0] = '\0';
-	for (size_t i = 0; i <= strlen(input)+1; i++) { //include the \0
-		if (grp_pos >= len) break; //we've matched all within the group
-
-		if (i-consumed > 99) Regex_Error("Match Group. Reached 99 char limit.");
-		size_t sublen = i-consumed;
-		if (sublen > 0) strncpy(substr, input+consumed, sublen);
-		substr[sublen] = '\0';
-
-		//printf("%d: '%s' (%d)\n", i, substr, sublen);
-
-		if (Regex_Match(grp[grp_pos], substr)) {
-			if (i >= strlen(input)) {
-				consumed = i;
-				grp_pos += 1;
-				break;
-			}
-			//Look ahead
-			strncpy(substr, input+consumed, sublen+1);
-			substr[sublen+2] = '\0';
-			
-			if (!Regex_Match(grp[grp_pos], substr)) {
-				consumed = i;
-				grp_pos += 1;
-				i--;
+//places regex index on matching right parenthesis of this cgroup
+void forward_cgroup(char *reg, size_t *ri) {
+	int paren_lvl = 0;
+	while (*ri < strlen(reg)) {
+		char prv = (*ri > 0) ? reg[*ri-1] : '\0';
+		char cur = reg[*ri];
+		if (prv != '\\') {
+			if (cur == '(') paren_lvl++;
+			else if (cur == ')' && paren_lvl == 0) return;
+			else if (cur == ')') {
+				paren_lvl--;
+				if (paren_lvl < 0) Lexic_Error("_forward_cgroup. Missing Right Parenthesis for capture group?");
 			}
 		}
+		(*ri)++;
 	}
-
-	//printf("grp_pos: %d; consumed_i: %d; strlen: %d\n", grp_pos, consumed, strlen(input));
-	return (grp_pos >= len && consumed >= strlen(input));
+	
+	Lexic_Error("_forward_cgroup. Could not leave capture group?");
 }
 
-//Defined in regex.h
-bool Regex_Match(struct regex reg, char *input) {
-	switch (reg.type) {
-		case RT_DIRECT:
-			return Regex_Match_Direct(input, reg.attached_data);
-		case RT_OR:
-			return Regex_Match_Or(input, reg.attached_data);
-		case RT_BRACKETS:
-			return Regex_Match_Brackets(input, reg.attached_data);
-		case RT_SEQUENCE:
-			return Regex_Match_Sequence(input, reg.attached_data);
-		case RT_QUALIFIER:
-			return Regex_Match_Qualifier(input, reg.attached_data);
-		case RT_ESCAPED:
-			return Regex_Match_Escaped(input, reg.attached_data);
-		case RT_GROUP:
-			return Regex_Match_Group(input, reg.attached_data);
-		case RT_UNDEFINED:
-			Regex_Error("Match. Attempted to match an UNDEFINED regex?");
-			break;
-		default:
-			Regex_Error("Match. Fell through switch statement?");
-			break;
+//expects ri to be at ) of cgroup we are attempting to restart
+void restart_cgroup(char *reg, size_t *ri) {
+	*ri -= 1; //move before )
+	int paren_lvl = 0;
+	while (*ri > 0) { //travelling backwards
+		char prv = (*ri > 0) ? reg[*ri-1] : '\0';
+		char cur = reg[*ri];
+		if (prv != '\\') {
+			if (cur == ')') paren_lvl++;
+			else if (cur == '(' && paren_lvl == 0) return;
+			else if (cur == '(') {
+				paren_lvl--;
+				if (paren_lvl < 0) Lexic_Error("_restart_cgroup. Missing Left Parenthesis for capture group?");
+			}
+		}
+
+		(*ri)--;
 	}
 
-	Regex_Error("Match. Escaped switch statement without return?");
+	Lexic_Error("_restart_cgroup. Could not restart capture group?");
+}
 
-	return false;
+bool Regex_Match(char *reg, char *input) {
+	size_t rlen = strlen(reg);
+	size_t ilen = strlen(input);
+
+	bool plus_quali = false;
+	bool lst_grp_fail = false;
+	int grp_lvl = 0; //capture group recursion lvl
+	size_t ii = 0; //Input Index
+	size_t ri = 0; //Regex Index
+	size_t bt_reg[10]; size_t rt_ind = 0; //stack of back track indices for regex returns; ie (asdf)* needs to go back to ( when evaluating *
+	size_t bt_inp[10]; size_t it_ind = 0; //stack of back track indices for input retursn; ie abc|acb where abc fails, and we must return to beginning of input
+	bt_reg[0] = 0; bt_inp[0] = 0;
+
+	enum regex_type mode = RT_UNDEFINED;
+	while (ii <= ilen && ri < rlen) { //NOTE: <= for if we need to catch ?'s at the end
+		char prv = (ri > 0) ? reg[ri-1] : '\0';
+		char cur = reg[ri];
+		char nxt = reg[ri+1];
+
+		if (mode == RT_UNDEFINED) {
+			if (cur == '\\') {mode = RT_ESCAPED;}
+			else if (cur == '|') {mode = RT_OR;}
+			else if (cur == '[') {mode = RT_BRACKETS;}
+			else if (is_qualifier(cur)) {mode = RT_QUALIFIER;}
+			else if (cur == '(' || cur == ')') {mode = RT_CGROUP;}
+			else {mode = RT_DIRECT;} //the default mode
+		} else if (mode == RT_DIRECT) {
+			if (cur == input[ii] || (cur == '.' && input[ii] != '\n')) {
+				ii++; //consume character
+				ri++; //onto nxt regex
+			} else {
+				if (is_qualifier(nxt)) {
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) return false;
+				} else {
+					if (grp_lvl <= 0) return false;
+					lst_grp_fail = true;
+					forward_cgroup(reg, &ri); 
+				}
+			}
+			mode = RT_UNDEFINED;
+		} else if (mode == RT_ESCAPED) {
+			if (escaped_match(nxt, input[ii])) {
+				ii++;
+				ri+=2; //skip \\ and escaped char
+			} else {
+				if (is_qualifier(nxt)) {
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) return false;
+				} else {
+					if (grp_lvl <= 0) return false;
+					lst_grp_fail = true;
+					forward_cgroup(reg, &ri);
+				}
+			}
+			mode = RT_UNDEFINED;
+		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
+			if (grp_lvl <= 0) return true;
+			lst_grp_fail = false;
+			forward_cgroup(reg, &ri);
+			mode = RT_UNDEFINED;
+		} else if (mode == RT_BRACKETS) {
+			Lexic_Warn("Match. In brackets mode!", LWT_DEBUG);
+			char matching = input[ii];
+			bool match = false;
+			ri++; //Assuming that we started at '[' of the brackets
+			while (ri < rlen) {
+				char bcur = reg[ri];
+
+				char str[] = "Checking   vs  "; str[9] = matching; str[14] = bcur;
+				Lexic_Warn(str, LWT_DEBUG);
+
+				if (bcur == ']') {ri++; break;}
+				if (bcur == '\\') {
+					ri++;
+					match = escaped_match(reg[ri], matching);
+				} else if (bcur == '-' && reg[ri-1] != '\\') {
+					Lexic_Warn("Match. Brackets mode reached a sequence!", LWT_DEBUG);
+					if (reg[ri-2] == '\\' || reg[ri+1] == '\\') Lexic_Error("Match. This lexical analyzer does not support escaped characters in sequences.");
+					match = (int)matching >= (int)reg[ri-1] && (int)matching <= (int)reg[ri+1];
+					ri++; //skip the sequence we've already evaluated
+				} else {
+					match = (matching == bcur);
+				}
+
+				if (match) {
+					Lexic_Warn("Match. Found a match leaving brackets!", LWT_DEBUG);
+					break;
+				}
+				
+				ri++;
+			}
+
+			if (match) {
+				ii++;
+				while (ri < rlen) {
+					if (reg[ri] == ']') {ri++; break;}
+					ri++;
+				}
+				Lexic_Warn("Match. Moved regex state past brackets!", LWT_DEBUG);
+			}
+
+			mode = RT_UNDEFINED;
+		} else if (mode == RT_QUALIFIER) {
+			printf("qualifier success unimplemented\n");
+			return false;
+			mode = RT_UNDEFINED;
+		} else if (mode == RT_CGROUP) {
+			printf("cgroup unimplemented\n");
+			return false;
+			mode = RT_UNDEFINED;
+		}
+	}
+
+	return ii >= ilen && ri >= rlen;
 }

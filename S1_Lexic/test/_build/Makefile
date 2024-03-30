@@ -1,50 +1,51 @@
 CC = gcc
+FLAGS = -Wall -Wextra -g
 
-WARN_F = -Wall -Wextra -g
+#Ordered in how foundational it is
 
-all_regex: regex.o match.o free.o 
+all_regex: match.o warn.o
 	@echo 'All Regex Tests'
-	@$(CC) ../all_regex.c regex.o match.o free.o ../group.c ../qualifier.c ../escaped.c ../brackets.c ../sequence.c ../or.c ../direct.c -D ALL_TESTS -o test_regex_all $(WARN_F)
+	@$(CC) ../all_regex.c warn.o match.o ../group.c ../qualifier.c ../escaped.c ../brackets.c ../or.c ../direct.c -D ALL_TESTS -o test_regex_all $(FLAGS)
 
-group_test: regex.o match.o free.o
-	@echo 'Regex Echo Test'
-	@$(CC) ../group.c regex.o match.o free.o -D VERBOSE -o test_regex_group $(WARN_F)
-
-qualifier_test: regex.o match.o free.o
-	@echo 'Regex Qualifier Test'
-	@$(CC) ../qualifier.c regex.o match.o free.o -D VERBOSE -o test_regex_qualifier $(WARN_F)
-
-escaped_test: regex.o match.o free.o
-	@echo 'Regex Escaped Test'
-	@$(CC) ../escaped.c regex.o match.o free.o -D VERBOSE -o test_regex_escaped $(WARN_F)
-
-brackets_test: regex.o match.o free.o
-	@echo 'Regex Brackets Test'
-	@$(CC) ../brackets.c regex.o match.o free.o -D VERBOSE -o test_regex_brackets $(WARN_F)
-
-sequence_test: regex.o match.o free.o
-	@echo 'Regex Sequence Test'
-	@$(CC) ../sequence.c regex.o match.o free.o -D VERBOSE -o test_regex_sequence $(WARN_F)
-
-or_test: regex.o match.o free.o
+or_test: match.o warn.o
 	@echo 'Regex Or Test'
-	@$(CC) ../or.c regex.o match.o free.o -D VERBOSE -o test_regex_or $(WARN_F)
+	@$(CC) ../or.c warn.o match.o -D VERBOSE -o test_regex_or $(FLAGS)
 
-direct_test: regex.o match.o free.o
+group_test: match.o warn.o
+	@echo 'Regex Echo Test'
+	@$(CC) ../group.c match.o warn.o -D VERBOSE -o test_regex_group $(FLAGS)
+
+qualifier_test: match.o warn.o
+	@echo 'Regex Qualifier Test'
+	@$(CC) ../qualifier.c match.o warn.o -D VERBOSE -o test_regex_qualifier $(FLAGS)
+
+brackets_test: match.o warn.o
+	@echo 'Regex Brackets Test'
+	@$(CC) ../brackets.c warn.o match.o -D VERBOSE -o test_regex_brackets $(FLAGS)
+
+escaped_test: match.o warn.o
+	@echo 'Regex Escaped Test'
+	@$(CC) ../escaped.c warn.o match.o -D VERBOSE -o test_regex_escaped $(FLAGS)
+
+direct_test: match.o warn.o
 	@echo 'Regex Direct Test'
-	@$(CC) ../direct.c regex.o match.o free.o -D VERBOSE -o test_regex_direct $(WARN_F)
+	@$(CC) ../direct.c warn.o match.o -D VERBOSE -o test_regex_direct $(FLAGS)
 
-regex.o: ../../private/regex.h ../../private/regex.c
-	@echo 'regex.c -> .o'
-	@$(CC) ../../private/regex.c -c $(WARN_F)
+validation_test: validate.o warn.o
+	@echo 'Regex Validation Test'
+	@$(CC) ../validation.c validate.o warn.o -D VERBOSE -o test_regex_validation $(FLAGS)
 
 match.o: ../../private/regex.h ../../private/match.c
 	@echo 'match.c -> .o'
-	@$(CC) ../../private/match.c -c $(WARN_F)
+	@$(CC) ../../private/match.c -c $(FLAGS)
 
-free.o: ../../private/regex.h ../../private/free.c
-	@echo 'free.c -> .o'
-	@$(CC) ../../private/free.c -c $(WARN_F)
+validate.o: ../../private/regex.h ../../private/validate.c
+	@echo 'validate.c -> .o'
+	@$(CC) ../../private/validate.c -c $(FLAGS)
+
+warn.o: ../../lexic.h ../../private/warn.c
+	@echo 'warn.c -> .o'
+	@$(CC) ../../private/warn.c -c $(FLAGS)
 
 clean:
 	@echo 'Removing all object and executables'
