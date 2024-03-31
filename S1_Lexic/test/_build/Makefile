@@ -12,7 +12,7 @@ or_test: match.o warn.o
 	@$(CC) ../or.c warn.o match.o -D VERBOSE -o test_regex_or $(FLAGS)
 
 group_test: match.o warn.o
-	@echo 'Regex Echo Test'
+	@echo 'Regex Group Test'
 	@$(CC) ../group.c match.o warn.o -D VERBOSE -o test_regex_group $(FLAGS)
 
 qualifier_test: match.o warn.o

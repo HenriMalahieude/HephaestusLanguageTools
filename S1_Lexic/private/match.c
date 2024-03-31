@@ -98,6 +98,7 @@ void restart_cgroup(char *reg, size_t *ri) {
 	while (*ri > 0) { //travelling backwards
 		char prv = (*ri > 0) ? reg[*ri-1] : '\0';
 		char cur = reg[*ri];
+		//printf("at '%c'\n", cur);
 		if (prv != '\\') {
 			if (cur == ')') paren_lvl++;
 			else if (cur == '(' && paren_lvl == 0) return;
@@ -109,8 +110,8 @@ void restart_cgroup(char *reg, size_t *ri) {
 
 		(*ri)--;
 	}
-
-	Lexic_Error("_restart_cgroup. Could not restart capture group?");
+	
+	if (reg[*ri] != '(' || paren_lvl != 0) Lexic_Error("_restart_cgroup. Could not restart capture group?");
 }
 
 bool Regex_Match(char *reg, char *input) {
@@ -139,6 +140,7 @@ bool Regex_Match(char *reg, char *input) {
 			else if (cur == '(' || cur == ')') {mode = RT_CGROUP;}
 			else {mode = RT_DIRECT;} //the default mode
 		} else if (mode == RT_DIRECT) {
+			Lexic_Warn("Match. In direct mode!", LWT_DEBUG);
 			if (cur == input[ii] || (cur == '.' && input[ii] != '\n')) {
 				ii++; //consume character
 				ri++; //onto nxt regex
@@ -153,7 +155,7 @@ bool Regex_Match(char *reg, char *input) {
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_ESCAPED) {
-			//printf("escaped\n");
+			Lexic_Warn("Match. In escaped mode!", LWT_DEBUG);
 			if (escaped_match(nxt, input[ii])) {
 				ii++;
 				ri+=2; //skip \\ and escaped char
@@ -168,6 +170,7 @@ bool Regex_Match(char *reg, char *input) {
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
+			Lexic_Warn("Match. In or mode!", LWT_DEBUG);
 			if (grp_lvl <= 0) return ii >= ilen;
 			lst_grp_fail = false;
 			forward_cgroup(reg, &ri);
@@ -180,15 +183,15 @@ bool Regex_Match(char *reg, char *input) {
 			while (ri < rlen) {
 				char bcur = reg[ri];
 
-				char str[] = "Checking _ vs _"; str[9] = matching; str[14] = bcur;
-				Lexic_Warn(str, LWT_DEBUG);
+				//char str[] = "Checking _ vs _"; str[9] = matching; str[14] = bcur;
+				//Lexic_Warn(str, LWT_DEBUG);
 
 				if (bcur == ']') {ri++; break;}
 				if (bcur == '\\') {
 					ri++;
 					match = escaped_match(reg[ri], matching);
 				} else if (bcur == '-' && reg[ri-1] != '\\') {
-					Lexic_Warn("Match. Brackets mode reached a sequence!", LWT_DEBUG);
+					//Lexic_Warn("Match. Brackets mode reached a sequence!", LWT_DEBUG);
 					if (reg[ri-2] == '\\' || reg[ri+1] == '\\') Lexic_Error("Match. This lexical analyzer does not support escaped characters in sequences.");
 					match = (int)matching >= (int)reg[ri-1] && (int)matching <= (int)reg[ri+1];
 					ri++; //skip the sequence we've already evaluated
@@ -197,7 +200,7 @@ bool Regex_Match(char *reg, char *input) {
 				}
 
 				if (match) {
-					Lexic_Warn("Match. Found a match leaving brackets!", LWT_DEBUG);
+					//Lexic_Warn("Match. Found a match leaving brackets!", LWT_DEBUG);
 					break;
 				}
 				
@@ -223,6 +226,7 @@ bool Regex_Match(char *reg, char *input) {
 
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_QUALIFIER) {
+			Lexic_Warn("Match. In qualifier mode!", LWT_DEBUG);
 			if (prv == '\\') Lexic_Error("Match. Cannot enter qualifier mode if previous is escaped, what?");
 			if (cur == '?') {
 				ri++;
@@ -232,6 +236,7 @@ bool Regex_Match(char *reg, char *input) {
 
 			plus_quali = true;
 			if (prv == ')' && reg[ri-2] != '\\') {
+				ri--; //restart group expecting to be on ')'
 				restart_cgroup(reg, &ri);
 			} else if (prv == ']' && reg[ri-2] != '\\') {
 				while (ri > 0) {
@@ -245,8 +250,22 @@ bool Regex_Match(char *reg, char *input) {
 
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_CGROUP) {
-			printf("cgroup unimplemented\n");
-			return false;
+			Lexic_Warn("Match. In cgroup mode!", LWT_DEBUG);
+			if (cur == '(') {
+				grp_lvl++;
+			} else if (cur == ')') {
+				grp_lvl--;
+			} 
+			ri++;
+			if (lst_grp_fail && cur == ')') { //at the end of the group
+				if (is_qualifier(reg[ri])) {
+					ri--;
+					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
+				} else {
+					break;
+				}
+			}
+			lst_grp_fail = false;
 			mode = RT_UNDEFINED;
 		}
 	}
