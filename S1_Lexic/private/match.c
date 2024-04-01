@@ -51,24 +51,32 @@ bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
 	return true;
 }
 
-//regex control take over ahead?
-enum regex_type get_ctrl_ahead(char *reg, size_t reg_ind, size_t *ind, char *mod) {
-	int paren_lvl = 0;
-	for (size_t i = reg_ind+1; i <= strlen(reg); i++) {
-		char prv = (i > 0) ? reg[i-1] : '\0';
-		*mod = reg[i];
-		*ind = i;
-
-		if (is_qualifier(*mod)) return RT_QUALIFIER;
-
-		if (prv != '\\' && *mod == '|') return RT_OR;
-
-		if (prv != '\\' && *mod == '(') paren_lvl++;
-		if (prv != '\\' && *mod == ')' && paren_lvl == 0) return RT_CGROUP;
-		if (prv != '\\' && *mod == ')' && paren_lvl > 0) paren_lvl--;
+bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *lst_grp_fail) {
+	char nxt = reg[*ri+1];
+	if (is_qualifier(nxt)) {
+		return recover_failed_qualifier(reg, ri, plus_quali);
 	}
 
-	return RT_DIRECT; //NOTE: we only want modifiers that take control, escaped doesn't, nor does brackets
+	char cc = '\0'; size_t ind = *ri;
+	while (ind < strlen(reg)) {
+		char pv = (ind > 0) ? reg[ind-1] : '\0';
+		char cc = reg[ind];
+		if (cc == '|') break;
+		if (cc == '(' && pv != '\\') return false;
+		if (cc == ')' && pv != '\\') break;
+		ind++;
+	}
+
+	if (cc == '|') {
+		*ri = ind + 1;
+		return true;
+	}
+
+	if (grp_lvl <= 0) return false;
+	*lst_grp_fail = true;
+	forward_cgroup(reg, ri); 
+
+	return true;
 }
 
 //places regex index on matching right parenthesis of this cgroup
@@ -145,13 +153,7 @@ bool Regex_Match(char *reg, char *input) {
 				ii++; //consume character
 				ri++; //onto nxt regex
 			} else {
-				if (is_qualifier(nxt)) {
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
-				} else {
-					if (grp_lvl <= 0) break;
-					lst_grp_fail = true;
-					forward_cgroup(reg, &ri); 
-				}
+				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_ESCAPED) {
@@ -160,13 +162,7 @@ bool Regex_Match(char *reg, char *input) {
 				ii++;
 				ri+=2; //skip \\ and escaped char
 			} else {
-				if (is_qualifier(reg[ri+2])) {
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
-				} else {
-					if (grp_lvl <= 0) break;
-					lst_grp_fail = true;
-					forward_cgroup(reg, &ri);
-				}
+				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 			mode = RT_UNDEFINED;
 		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
@@ -214,14 +210,7 @@ bool Regex_Match(char *reg, char *input) {
 					ri++;
 				}
 			} else {
-				if (is_qualifier(reg[ri])) {
-					ri--;
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
-				} else {
-					if (grp_lvl <= 0) break;
-					lst_grp_fail = true;
-					forward_cgroup(reg, &ri);
-				}
+				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 
 			mode = RT_UNDEFINED;
