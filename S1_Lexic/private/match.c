@@ -15,6 +15,22 @@ enum regex_type {
 	RT_CGROUP,
 };
 
+#define BTSTCKMAX 10
+size_t btstck[BTSTCKMAX];
+int sp = -1; 
+
+void psh_bt(size_t st) {
+	if (sp >= BTSTCKMAX-1) Lexic_Error("_psh_bt. Stack Overflow attempted, maximum group nesting is 10 right now!");
+
+	btstck[++sp] = st;
+}
+
+size_t pop_bt() {
+	if (sp < 0) Lexic_Error("_pop_bt. Stack Underflow attempted, nothing in stack?");
+
+	return btstck[sp--];
+}
+
 bool escaped_match(char esc, char in) {
 	if (esc == 's') return isspace(in);
 	if (esc == 'S') return !isspace(in);
@@ -94,8 +110,8 @@ bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
 	return true;
 }
 
-bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *lst_grp_fail) {
-	Lexic_Warn("_recover_fail. Recovering a failure!", LWT_DEBUG);
+bool recover_fail(char *reg, size_t *ri, size_t *ii, int grp_lvl, bool *plus_quali, bool *lst_grp_fail) {
+	//Lexic_Warn("_recover_fail. Recovering a failure!", LWT_DEBUG);
 
 	char nxt = reg[*ri+1];
 	if (is_qualifier(nxt)) {
@@ -104,7 +120,7 @@ bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *ls
 		if (!rec) { //check for future '|'
 			(*ri)++;
 			if (is_qualifier(reg[*ri+1])) Lexic_Error("_recover_fail. Qualified qualifier?");
-			return recover_fail(reg, ri, grp_lvl, plus_quali, lst_grp_fail);
+			return recover_fail(reg, ri, ii, grp_lvl, plus_quali, lst_grp_fail);
 		}
 		return rec;
 	}
@@ -133,8 +149,10 @@ bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *ls
 	Lexic_Warn("_recover_fail. Was a cgroup failure!", LWT_DEBUG);
 	if (grp_lvl <= 0) return false;
 	*lst_grp_fail = true;
-	forward_cgroup(reg, ri); 
-
+	forward_cgroup(reg, ri);
+	*ii = pop_bt();
+	*ri+=1;
+	
 	return true;
 }
 
@@ -150,11 +168,11 @@ bool Regex_Match(char *reg, char *input) {
 
 	enum regex_type mode = RT_UNDEFINED;
 	while (ii <= ilen && ri < rlen) { //NOTE: <= for if we need to catch ?'s at the end
-		char prv = (ri > 0) ? reg[ri-1] : '\0';
+		char prv = (ri > 0) ? reg[ri-1] : ' ';
 		char cur = reg[ri];
-		char nxt = reg[ri+1];
+		char nxt = reg[ri+1]; if (nxt == '\0') nxt = ' ';
 
-		//printf("ii: %lld, ilen: %lld, ri: %lld, rlen: %lld\n", ii, ilen, ri, rlen);
+		//printf("i:%lld <= %lld, ri: %lld < %lld, '%c%c%c', lgf:%d\n", ii, ilen, ri, rlen, prv, cur, nxt, lst_grp_fail);
 
 		if (mode == RT_UNDEFINED) {
 			if (cur == '\\') {mode = RT_ESCAPED;}
@@ -171,7 +189,7 @@ bool Regex_Match(char *reg, char *input) {
 				ii++; //consume character
 				ri++; //onto nxt regex
 			} else {
-				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
+				if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 		} else if (mode == RT_ESCAPED) {
 			Lexic_Warn("Match. In escaped mode!", LWT_DEBUG);
@@ -179,13 +197,18 @@ bool Regex_Match(char *reg, char *input) {
 				ii++;
 				ri+=2; //skip \\ and escaped char
 			} else {
-				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
+				if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
-		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
+		} else if (mode == RT_OR) { 
 			Lexic_Warn("Match. In or mode!", LWT_DEBUG);
-			if (grp_lvl <= 0) return ii >= ilen;
+
+			if (lst_grp_fail && prv == ')') { //failed the group before
+				ri++;	
+			} else { //otherwise it was a success
+				if (grp_lvl <= 0) return ii >= ilen;
+				forward_cgroup(reg, &ri);
+			}
 			lst_grp_fail = false;
-			forward_cgroup(reg, &ri);
 		} else if (mode == RT_BRACKETS) {
 			Lexic_Warn("Match. In brackets mode!", LWT_DEBUG);
 			char matching = input[ii];
@@ -225,7 +248,7 @@ bool Regex_Match(char *reg, char *input) {
 					ri++;
 				}
 			} else {
-				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
+				if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 
 		} else if (mode == RT_QUALIFIER) {
@@ -235,38 +258,38 @@ bool Regex_Match(char *reg, char *input) {
 				ri++;
 				mode = RT_UNDEFINED;
 				continue;
-			}
-
-			plus_quali = true;
-			if (prv == ')' && reg[ri-2] != '\\') {
-				ri--; //restart group expecting to be on ')'
-				restart_cgroup(reg, &ri);
-			} else if (prv == ']' && reg[ri-2] != '\\') {
-				while (ri > 0) {
-					if (reg[ri] == '[' && reg[ri-1] != '\\') break;
+			} else {
+				plus_quali = true;
+				if (prv == ')' && reg[ri-2] != '\\') {
+					ri--; //restart group and recover_fail expecting to be on ')'
+					if (lst_grp_fail) {
+						if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
+					} else {
+						restart_cgroup(reg, &ri);
+					}
+				} else if (prv == ']' && reg[ri-2] != '\\') {
+					while (ri > 0) {
+						if (reg[ri] == '[' && reg[ri-1] != '\\') break;
+						ri--;
+					}
+				} else {
+					if (reg[ri-2] == '\\') ri--;
 					ri--;
 				}
-			} else {
-				if (reg[ri-2] == '\\') ri--;
-				ri--;
 			}
-
 		} else if (mode == RT_CGROUP) {
 			Lexic_Warn("Match. In cgroup mode!", LWT_DEBUG);
 			if (cur == '(') {
 				grp_lvl++;
+				psh_bt(ii);
 			} else if (cur == ')') {
+				if (lst_grp_fail) {
+					if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
+				}
 				grp_lvl--;
+				pop_bt();
 			} 
 			ri++;
-			if (lst_grp_fail && cur == ')') { //at the end of the group
-				if (is_qualifier(reg[ri])) {
-					ri--;
-					if (!recover_failed_qualifier(reg, &ri, &plus_quali)) break;
-				} else {
-					break;
-				}
-			}
 			lst_grp_fail = false;
 		}
 		mode = RT_UNDEFINED;

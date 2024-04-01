@@ -9,7 +9,7 @@ void OrTest() {
 
 
 	//Direct Or
-	/*char or1[] = "int|double";
+	char or1[] = "int|double";
 	TEST_REGEX(or1, "int", true);
 	TEST_REGEX(or1, "double", true);
 	TEST_REGEX(or1, "integer", false);
@@ -48,7 +48,7 @@ void OrTest() {
 	char or5[] = "(abc|def)*";
 	TEST_REGEX(or5, "", true);
 	TEST_REGEX(or5, "a", false);
-	/*TEST_REGEX(or5, "abc", true);
+	TEST_REGEX(or5, "abc", true);
 	TEST_REGEX(or5, "acb", false);
 	TEST_REGEX(or5, "def", true);
 	TEST_REGEX(or5, "dfe", false);
@@ -57,7 +57,7 @@ void OrTest() {
 	TEST_REGEX(or5, "defdef", true);
 	TEST_REGEX(or5, "defdfa", false);
 	TEST_REGEX(or5, "abcdefdefabc", true);
-	TEST_REGEX(or5, "abcdfadfaabc", false);
+	TEST_REGEX(or5, "abcdfadfaabc", false); //*/
 
 	//Nested Group Or
 	char or6[] = "abc|(def+|(ghi|jkl+)|mno)";
@@ -80,7 +80,7 @@ int regex_colu_no = 0;
 int test_count = 1;
 
 int main(void) {
-	warn_level = LWT_DEBUG;
+	//warn_level = LWT_DEBUG;
 	OrTest();
 	return 0;
 }
