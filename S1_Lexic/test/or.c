@@ -7,7 +7,6 @@ void OrTest() {
 	printf("[!] Regex Or Test Start\n");
 #endif
 
-
 	//Direct Or
 	char or1[] = "int|double";
 	TEST_REGEX(or1, "int", true);

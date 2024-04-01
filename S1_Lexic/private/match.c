@@ -172,7 +172,7 @@ bool Regex_Match(char *reg, char *input) {
 		char cur = reg[ri];
 		char nxt = reg[ri+1]; if (nxt == '\0') nxt = ' ';
 
-		//printf("i:%lld <= %lld, ri: %lld < %lld, '%c%c%c', lgf:%d\n", ii, ilen, ri, rlen, prv, cur, nxt, lst_grp_fail);
+		if (warn_level == LWT_DEBUG) printf("i:%lld <= %lld, r:%lld < %lld, '%c%c%c', lgf:%d\n", ii, ilen, ri, rlen, prv, cur, nxt, lst_grp_fail);
 
 		if (mode == RT_UNDEFINED) {
 			if (cur == '\\') {mode = RT_ESCAPED;}
@@ -197,6 +197,7 @@ bool Regex_Match(char *reg, char *input) {
 				ii++;
 				ri+=2; //skip \\ and escaped char
 			} else {
+				ri++; //Is expecting the failure on the LAST section of individual regex
 				if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 		} else if (mode == RT_OR) { 
@@ -234,7 +235,7 @@ bool Regex_Match(char *reg, char *input) {
 				}
 
 				if (match) {
-					//Lexic_Warn("Match. Found a match leaving brackets!", LWT_DEBUG);
+					Lexic_Warn("Match. Found a match leaving brackets!", LWT_DEBUG);
 					break;
 				}
 				
@@ -248,6 +249,7 @@ bool Regex_Match(char *reg, char *input) {
 					ri++;
 				}
 			} else {
+				ri--; //expecting final input that is erroring
 				if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 
@@ -259,8 +261,10 @@ bool Regex_Match(char *reg, char *input) {
 				mode = RT_UNDEFINED;
 				continue;
 			} else {
+				//printf("1\n");
 				plus_quali = true;
 				if (prv == ')' && reg[ri-2] != '\\') {
+					//printf("2\n");
 					ri--; //restart group and recover_fail expecting to be on ')'
 					if (lst_grp_fail) {
 						if (!recover_fail(reg, &ri, &ii, grp_lvl, &plus_quali, &lst_grp_fail)) break;
@@ -268,11 +272,13 @@ bool Regex_Match(char *reg, char *input) {
 						restart_cgroup(reg, &ri);
 					}
 				} else if (prv == ']' && reg[ri-2] != '\\') {
+					//printf("3\n");
 					while (ri > 0) {
 						if (reg[ri] == '[' && reg[ri-1] != '\\') break;
 						ri--;
 					}
 				} else {
+					//printf("4\n");
 					if (reg[ri-2] == '\\') ri--;
 					ri--;
 				}

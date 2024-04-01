@@ -1,11 +1,11 @@
+#ifndef __HEPHAESTUS_REGEX_TESTER_HELPER__
+#define __HEPHAESTUS_REGEX_TESTER_HELPER__
+
 #include <stdio.h>
 #include <string.h>
 
 #include "../lexic.h"
 #include "../private/regex.h"
-
-#ifndef __HEPHAESTUS_REGEX_TESTER_HELPER__
-#define __HEPHAESTUS_REGEX_TESTER_HELPER__
 
 #ifndef TEST_NAME
 	#define TEST_NAME "UNDEFINED"
@@ -13,7 +13,7 @@
 
 extern int test_count;
 
-void TEST_REGEX(char *rgx, char *str, bool resolve_to){
+static void TEST_REGEX(char *rgx, char *str, bool resolve_to){
 	bool val = (Regex_Match(rgx, str) == resolve_to);
 	
 #ifndef VERBOSE
