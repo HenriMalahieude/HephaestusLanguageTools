@@ -32,53 +32,6 @@ bool is_qualifier(char q) {
 	return q == '*' || q == '?' || q == '+';
 }
 
-//If failed escaped, DO NOT move past \ pls, let this function handle it
-//returns whether or not it recovered properly
-bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
-	if (*ri >= strlen(reg)) Lexic_Error("_recover_failed_qualifier. Regex Index already at end of str?");
-
-	char cur = reg[*ri];
-	if (is_qualifier(cur)) Lexic_Error("_recover_failed_qualifier. Incorrect use of this function on qualifier?");
-	
-	size_t q_ind = (cur == '\\') ? *ri+2 : *ri+1;
-	char qualifier = reg[q_ind];
-	if (qualifier == '+' && !(*plus_match)) return false;
-	
-	Lexic_Warn("Recovering from failed qualifier", LWT_DEBUG);
-
-	*plus_match = false;
-	*ri = q_ind+1; //skip past this modifier
-	return true;
-}
-
-bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *lst_grp_fail) {
-	char nxt = reg[*ri+1];
-	if (is_qualifier(nxt)) {
-		return recover_failed_qualifier(reg, ri, plus_quali);
-	}
-
-	char cc = '\0'; size_t ind = *ri;
-	while (ind < strlen(reg)) {
-		char pv = (ind > 0) ? reg[ind-1] : '\0';
-		char cc = reg[ind];
-		if (cc == '|') break;
-		if (cc == '(' && pv != '\\') return false;
-		if (cc == ')' && pv != '\\') break;
-		ind++;
-	}
-
-	if (cc == '|') {
-		*ri = ind + 1;
-		return true;
-	}
-
-	if (grp_lvl <= 0) return false;
-	*lst_grp_fail = true;
-	forward_cgroup(reg, ri); 
-
-	return true;
-}
-
 //places regex index on matching right parenthesis of this cgroup
 void forward_cgroup(char *reg, size_t *ri) {
 	int paren_lvl = 0;
@@ -122,6 +75,69 @@ void restart_cgroup(char *reg, size_t *ri) {
 	if (reg[*ri] != '(' || paren_lvl != 0) Lexic_Error("_restart_cgroup. Could not restart capture group?");
 }
 
+//If failed escaped, DO NOT move past \ pls, let this function handle it
+//returns whether or not it recovered properly
+bool recover_failed_qualifier(char *reg, size_t *ri, bool *plus_match) {
+	if (*ri >= strlen(reg)) Lexic_Error("_recover_failed_qualifier. Regex Index already at end of str?");
+
+	char cur = reg[*ri];
+	if (is_qualifier(cur)) Lexic_Error("_recover_failed_qualifier. Incorrect use of this function on qualifier?");
+	
+	size_t q_ind = (cur == '\\') ? *ri+2 : *ri+1;
+	char qualifier = reg[q_ind];
+	if (qualifier == '+' && !(*plus_match)) return false;
+	
+	Lexic_Warn("Recovering from failed qualifier", LWT_DEBUG);
+
+	*plus_match = false;
+	*ri = q_ind+1; //skip past this modifier
+	return true;
+}
+
+bool recover_fail(char *reg, size_t *ri, int grp_lvl, bool *plus_quali, bool *lst_grp_fail) {
+	Lexic_Warn("_recover_fail. Recovering a failure!", LWT_DEBUG);
+
+	char nxt = reg[*ri+1];
+	if (is_qualifier(nxt)) {
+		Lexic_Warn("_recover_fail. Was a qualified failure!", LWT_DEBUG);
+		bool rec = recover_failed_qualifier(reg, ri, plus_quali);
+		if (!rec) { //check for future '|'
+			(*ri)++;
+			if (is_qualifier(reg[*ri+1])) Lexic_Error("_recover_fail. Qualified qualifier?");
+			return recover_fail(reg, ri, grp_lvl, plus_quali, lst_grp_fail);
+		}
+		return rec;
+	}
+
+
+	char cc = '\0'; size_t ind = *ri;
+	while (ind < strlen(reg)) {
+		char pv = (ind > 0) ? reg[ind-1] : '\0';
+		cc = reg[ind];
+		if (cc == '|') break;
+		if (cc == '(' && pv != '\\') return false;
+		if (cc == ')' && pv != '\\') break;
+		ind++;
+	}
+
+	//printf("cc:%c\n", cc);
+
+	if (cc == '|') {
+		Lexic_Warn("_recover_fail. Was an or_statement failure!", LWT_DEBUG);
+		*ri = ind + 1;
+		*plus_quali = false;
+		*lst_grp_fail = false;
+		return true;
+	}
+
+	Lexic_Warn("_recover_fail. Was a cgroup failure!", LWT_DEBUG);
+	if (grp_lvl <= 0) return false;
+	*lst_grp_fail = true;
+	forward_cgroup(reg, ri); 
+
+	return true;
+}
+
 bool Regex_Match(char *reg, char *input) {
 	size_t rlen = strlen(reg);
 	size_t ilen = strlen(input);
@@ -147,7 +163,9 @@ bool Regex_Match(char *reg, char *input) {
 			else if (is_qualifier(cur)) {mode = RT_QUALIFIER;}
 			else if (cur == '(' || cur == ')') {mode = RT_CGROUP;}
 			else {mode = RT_DIRECT;} //the default mode
-		} else if (mode == RT_DIRECT) {
+		} 
+
+		if (mode == RT_DIRECT) {
 			Lexic_Warn("Match. In direct mode!", LWT_DEBUG);
 			if (cur == input[ii] || (cur == '.' && input[ii] != '\n')) {
 				ii++; //consume character
@@ -155,7 +173,6 @@ bool Regex_Match(char *reg, char *input) {
 			} else {
 				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
-			mode = RT_UNDEFINED;
 		} else if (mode == RT_ESCAPED) {
 			Lexic_Warn("Match. In escaped mode!", LWT_DEBUG);
 			if (escaped_match(nxt, input[ii])) {
@@ -164,13 +181,11 @@ bool Regex_Match(char *reg, char *input) {
 			} else {
 				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
-			mode = RT_UNDEFINED;
 		} else if (mode == RT_OR) { //if we reached this mode normally, that means we've successfully matched everything before it
 			Lexic_Warn("Match. In or mode!", LWT_DEBUG);
 			if (grp_lvl <= 0) return ii >= ilen;
 			lst_grp_fail = false;
 			forward_cgroup(reg, &ri);
-			mode = RT_UNDEFINED;
 		} else if (mode == RT_BRACKETS) {
 			Lexic_Warn("Match. In brackets mode!", LWT_DEBUG);
 			char matching = input[ii];
@@ -213,7 +228,6 @@ bool Regex_Match(char *reg, char *input) {
 				if (!recover_fail(reg, &ri, grp_lvl, &plus_quali, &lst_grp_fail)) break;
 			}
 
-			mode = RT_UNDEFINED;
 		} else if (mode == RT_QUALIFIER) {
 			Lexic_Warn("Match. In qualifier mode!", LWT_DEBUG);
 			if (prv == '\\') Lexic_Error("Match. Cannot enter qualifier mode if previous is escaped, what?");
@@ -237,7 +251,6 @@ bool Regex_Match(char *reg, char *input) {
 				ri--;
 			}
 
-			mode = RT_UNDEFINED;
 		} else if (mode == RT_CGROUP) {
 			Lexic_Warn("Match. In cgroup mode!", LWT_DEBUG);
 			if (cur == '(') {
@@ -255,8 +268,8 @@ bool Regex_Match(char *reg, char *input) {
 				}
 			}
 			lst_grp_fail = false;
-			mode = RT_UNDEFINED;
 		}
+		mode = RT_UNDEFINED;
 	}
 
 	//printf("Match end: %d >= %d && %d >= %d\n", ii, ilen, ri, rlen);

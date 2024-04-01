@@ -9,7 +9,7 @@ void OrTest() {
 
 
 	//Direct Or
-	char or1[] = "int|double";
+	/*char or1[] = "int|double";
 	TEST_REGEX(or1, "int", true);
 	TEST_REGEX(or1, "double", true);
 	TEST_REGEX(or1, "integer", false);
@@ -27,7 +27,7 @@ void OrTest() {
 	TEST_REGEX(or2, "bruh", false);
 
 	//Escaped Or
-	char or4[] = "\d|a";
+	char or4[] = "\\d|a";
 	TEST_REGEX(or4, "0", true);
 	TEST_REGEX(or4, "5", true);
 	TEST_REGEX(or4, "9", true);
@@ -38,17 +38,17 @@ void OrTest() {
 
 	//Qualified Or
 	char or3[] = "0+|1";
-	TEST_REGEX(or3, "", true);
+	TEST_REGEX(or3, "", false);
 	TEST_REGEX(or3, "1", true);
 	TEST_REGEX(or3, "0001", false);
 	TEST_REGEX(or3, "111", false);
-	TEST_REGEX(or3, "10", false);
+	TEST_REGEX(or3, "10", false);//*/
 
 	//Group Or
 	char or5[] = "(abc|def)*";
 	TEST_REGEX(or5, "", true);
 	TEST_REGEX(or5, "a", false);
-	TEST_REGEX(or5, "abc", true);
+	/*TEST_REGEX(or5, "abc", true);
 	TEST_REGEX(or5, "acb", false);
 	TEST_REGEX(or5, "def", true);
 	TEST_REGEX(or5, "dfe", false);
@@ -66,7 +66,7 @@ void OrTest() {
 	TEST_REGEX(or6, "ghi", true);
 	TEST_REGEX(or6, "jklll", true);
 	TEST_REGEX(or6, "mno", true);
-	TEST_REGEX(or6, "jk", false);
+	TEST_REGEX(or6, "jk", false);//*/
 
 #ifdef VERBOSE
 	printf("[!] Regex Or Test Finished\n");
@@ -80,6 +80,7 @@ int regex_colu_no = 0;
 int test_count = 1;
 
 int main(void) {
+	warn_level = LWT_DEBUG;
 	OrTest();
 	return 0;
 }

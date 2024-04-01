@@ -2,6 +2,7 @@
 #include "../lexic.h"
 #include "regex.h"
 
+//Takes control of reg_colu_no
 bool Regex_Validate(char *reg) {
 	int paren_count = 0;
 	int bracket_count = 0;
@@ -13,6 +14,8 @@ bool Regex_Validate(char *reg) {
 		if (cur == '|' && (i == 0 || prv == '|' || prv == '(' || prv == ')' || nxt == '\0')) {
 			Lexic_Warn("Validate. This lexical analyzer does not support empty/0-length or expressions.", LWT_MJRWRN);
 			return false;
+		} else (cur == '|' && (prv == '*'  || prv == '?')) {
+			if (i == 2) Lexic_Warn("Validate. This or statement might never evaluate due to '*' or '?' qualifier.");
 		}
 
 		if (cur == '[' && prv != '\\') { 
