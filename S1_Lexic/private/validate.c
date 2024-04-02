@@ -1,6 +1,8 @@
 #include <string.h>
 #include "../lexic.h"
 #include "regex.h"
+#include "lexic_internal.h"
+#include "warn.h"
 
 //Takes control of reg_colu_no
 bool Regex_Validate(char *reg) {
@@ -15,7 +17,7 @@ bool Regex_Validate(char *reg) {
 			Lexic_Warn("Validate. This lexical analyzer does not support empty/0-length or expressions.", LWT_MJRWRN);
 			return false;
 		} else (cur == '|' && (prv == '*'  || prv == '?')) {
-			if (i == 2) Lexic_Warn("Validate. This or statement might never evaluate due to '*' or '?' qualifier.");
+			Lexic_Warn("Validate. This or statement may never evaluate due to '*' or '?' qualifier.", LWT_STDWRN);
 		}
 
 		if (cur == '[' && prv != '\\') { 
@@ -53,7 +55,7 @@ bool Regex_Validate(char *reg) {
 			}
 		}
 
-		if (cur == '*' || cur == '?' || cur == '+') {
+		if (prv != '\\' && (cur == '*' || cur == '?' || cur == '+')) {
 			if (i == 0) {
 				Lexic_Warn("Validate. Cannot qualify empty/0-length string.", LWT_MJRWRN);
 				return false;
@@ -69,6 +71,12 @@ bool Regex_Validate(char *reg) {
 				return false;
 			}
 		}
+
+		if (bracket_count > 0 && cur == '-') {
+			if ((int)prv > (int)nxt) Lexic_Warn("Validate. Note that this sequence within brackets will exclude range specified.", LWT_VERBSE);
+			else if (prv == nxt) Lexic_Warn("Validate. Sequence within brackets has no range.", LWT_STDWRN);
+		}
+		regex_colu_no++;
 	}
 
 	if (paren_count != 0) {

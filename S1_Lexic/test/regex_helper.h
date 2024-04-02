@@ -5,6 +5,8 @@
 #include <string.h>
 
 #include "../lexic.h"
+#include "../private/lexic_internal.h"
+#include "../private/warn.h"
 #include "../private/regex.h"
 
 #ifndef TEST_NAME

@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../lexic.h"
+
+#include "warn.h"
+#include "lexic_internal.h"
 
 void Lexic_Error(char *msg) {
 	printf("Lexic Error @ L%d, C%d: %s\n", regex_line_no, regex_colu_no, msg);

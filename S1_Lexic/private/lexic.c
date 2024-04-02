@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "../lexic.h"
+#include "lexic_internal.h"
+#include "warn.h"
 #include "regex.h"
 
 int regex_line_no = 0;
@@ -40,13 +42,6 @@ struct token_vocabulary Lexic_Vocabulary_Make_File(char *file_name) {
 	return dictionary;
 }
 
-//Expecting an input of "name: regex\n"+
-struct token_vocabulary Lexic_Vocabulary_Make_Stream(char *stream) {
-	regex_line_no = 1;
-	regex_colu_no = 1;
-	//TODO
-}
-
 struct token_instance* Lexic_Token_Stream_File(char *file_name, struct token_vocabulary *vocab) {
 	char *strm = ftostr(file_name);
 
@@ -75,7 +70,7 @@ char ** Lexic_Token_Name_Stream_String(char *stream, struct token_vocabulary *vo
 	char **namestrm = NULL;
 	int name_strm_cnt = 0;
 
-	for (;tstrm->name != NULL; tstrm++) {
+	for (tstrm = tstrm;tstrm->name != NULL; tstrm++) {
 		char *name = tstrm->name;
 		
 		name_strm_cnt += 1;

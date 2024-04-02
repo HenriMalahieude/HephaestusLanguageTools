@@ -3,6 +3,8 @@
 #include <ctype.h>
 
 #include "../lexic.h"
+#include "lexic_internal.h"
+#include "warn.h"
 #include "regex.h"
 
 enum regex_type {
