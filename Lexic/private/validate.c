@@ -1,10 +1,9 @@
 #include <string.h>
-#include "../lexic.h"
 #include "regex.h"
 #include "lexic_internal.h"
 #include "warn.h"
 
-//Takes control of reg_colu_no
+//Takes control of regex_colu_no
 bool Regex_Validate(char *reg) {
 	int paren_count = 0;
 	int bracket_count = 0;
