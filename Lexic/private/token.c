@@ -5,8 +5,9 @@
 
 char * ftostr(char *file_name);
 
-LexicToken * Lexic_Token_Stream_File(char *file_name, LexicVocabulary *vocab) {
-	if (strlen(file_name) <= 0) Lexic_Error("Token Stream File. Was given empty string for file name!");
+LexicToken * Lexic_Token_Stream_Make_From_File(char *file_name, LexicVocabulary *vocab) {
+	if (file_name == NULL || file_name[0] == '\0') Lexic_Error("Token Stream File. Given empty file name?");
+	if (vocab == NULL) Lexic_Error("Token Stream File. Given NULL Vocab?");
 
 	char *strm = ftostr(file_name);
 
@@ -16,14 +17,25 @@ LexicToken * Lexic_Token_Stream_File(char *file_name, LexicVocabulary *vocab) {
 	return tstrm;
 }
 
-LexicToken * Lexic_Token_Stream_String(char *stream, LexicVocabulary *vocab) {
+LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *vocab) {
+	if (vocab == NULL) Lexic_Error("Token Stream String. Given NULL Vocab?");
+
 	regex_line_no = 1;
 	regex_colu_no = 1;
+
+	struct lexic_token *tstrm = malloc(sizeof(struct lexic_token)); size_t t_ind = 0; //unused index	
+
+	if (stream == NULL || stream[0] == '\0') {
+		tstrm[0].name = NULL;
+		tstrm[0].regex = NULL;
+		return tstrm;
+	}
 
 	size_t stlen = strlen(stream);
 	char substring[100]; size_t nconsumed_ind = 0;
 	int lst_rgx_match = -1; //negative signifies no match
 	size_t lst_match_size = 0;
+
 	for (size_t i = 0; i < stlen; i++) {
 		int sublen = i - nconsumed_ind;
 		if (sublen <= 0) continue; //don't support 0-string matches
@@ -32,35 +44,17 @@ LexicToken * Lexic_Token_Stream_String(char *stream, LexicVocabulary *vocab) {
 	}
 }
 
-char ** Lexic_Token_Name_Stream_File(char *file_name, LexicVocabulary *vocab) {
-	if (strlen(file_name) <= 0) Lexic_Error("Token Name Stream File. Was given empty string for file name!");
+//assuming that definition_name and matching_input fields are malloc copies
+void Lexic_Token_Stream_Free(LexicToken *tstrm) {
+	if (tstrm == NULL) return;
 
-	char *strm = ftostr(file_name);
-
-	char **namestrm = Lexic_Token_Name_Stream_String(strm, vocab);
-
-	free(strm);
-	return namestrm;
-}
-
-char ** Lexic_Token_Name_Stream_String(char *stream, LexicVocabulary *vocab) {
-	if (strlen(stream) <= 0) return NULL;
-
-	struct lexic_token *tstrm = Lexic_Token_Stream_String(stream, vocab);
-
-	char **namestrm = NULL;
-	int name_strm_cnt = 0;
-
-	for (tstrm = tstrm;tstrm->name != NULL; tstrm++) {
-		char *name = tstrm->name;
-		
-		name_strm_cnt += 1;
-		namestrm = realloc(namestrm, name_strm_cnt * sizeof(char*));
-		namestrm[name_strm_cnt-1] = (char*)calloc(strlen(name)+1, sizeof(char));
+	struct lexic_token current = tstrm[0];
+	size_t cur_ind = 0;
+	while(current.definition_name != NULL) {
+		free(current.definition_name);
+		free(current.matching_input);
+		current = tstrm[++cur_ind];
 	}
-
-	namestrm = realloc(namestrm, (name_strm_cnt+1) * sizeof(char*));
-	namestrm[name_strm_cnt] = NULL; //Properly delineate the array
-
-	return namestrm;
+	
+	free(tstrm);
 }
