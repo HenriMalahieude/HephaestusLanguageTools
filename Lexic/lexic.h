@@ -1,5 +1,6 @@
 #ifndef __HEPHAESTUS_LEXICAL_ANALYZER__
 #define __HEPHAESTUS_LEXICAL_ANALYZER__
+#include <stdbool.h>
 
 typedef struct lexic_vocabulary LexicVocabulary;
 
@@ -26,7 +27,7 @@ LexicVocabulary * Lexic_Vocabulary_Allocate();
 bool Lexic_Vocabulary_Add_Definition(LexicVocabulary *vocab, char *name, char *regex);
 
 //Free a Vocabulary
-void Lexic_Vocabulary_Free(Lexic_Vocabulary *);
+void Lexic_Vocabulary_Free(LexicVocabulary *);
 
 
 /*----------------------------Token Stream----------------------------*/

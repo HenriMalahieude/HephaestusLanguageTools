@@ -10,7 +10,7 @@ struct token_definition {
 };
 
 /*Entire Vocabulary Rules*/
-struct token_vocabulary {
+struct lexic_vocabulary {
 	struct token_definition *definitions;
 	int def_count;
 };

@@ -12,12 +12,15 @@ bool Regex_Validate(char *reg) {
 		char cur = reg[i];
 		char nxt = reg[i+1];
 
-		if (cur == '|' && (i == 0 || prv == '|' || prv == '(' || prv == ')' || nxt == '\0')) {
-			Lexic_Warn("Validate. This lexical analyzer does not support empty/0-length or expressions.", LWT_MJRWRN);
-			return false;
-		} else (cur == '|' && (prv == '*'  || prv == '?')) {
-			Lexic_Warn("Validate. This or statement may never evaluate due to '*' or '?' qualifier.", LWT_STDWRN);
+		if (cur == '|') { //or mode
+			if (i == 0 || prv == '|' || prv == '(' || nxt == '\0') {
+				Lexic_Warn("Validate. This lexical analyzer does not support empty/0-length or expressions.", LWT_MJRWRN);
+				return false;
+			} else if (prv == '*' || prv == '?') {
+				Lexic_Warn("Validate. This or statement may never evaluate due to '*' or '?' qualifier.", LWT_STDWRN);
+			}
 		}
+
 
 		if (cur == '[' && prv != '\\') { 
 			bracket_count++; 
@@ -39,8 +42,9 @@ bool Regex_Validate(char *reg) {
 			}
 		}
 
-		if (cur == '(' && prv != '\\') paren_count++;
-		else if (cur == ')' && prv != '\\') {
+		if (cur == '(' && prv != '\\') { 
+			paren_count++;
+		} else if (cur == ')' && prv != '\\') {
 			if (prv == '(') {
 				Lexic_Warn("Validate. This lexical analyzer does not support empty/0-length expressions. Like '()'.", LWT_MJRWRN);
 				return false;

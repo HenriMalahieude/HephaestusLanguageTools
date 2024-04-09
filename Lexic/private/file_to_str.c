@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "warn.h"
 
 //NOTE: Dynamically allocates a string. Expects it to be freed by caller
@@ -5,7 +8,7 @@ char* ftostr(char *file_name) {
 	FILE *read_from = fopen(file_name, "r");
 	if (read_from == NULL) Lexic_Error("Could not read from file. Does it exist?");
 
-	long file_size = 0;
+	unsigned long long file_size = 0;
 	fseek(read_from, 0, SEEK_END); //Move to eof
 	file_size = ftell(read_from); //Amount of characters
 	rewind(read_from); //Back to top

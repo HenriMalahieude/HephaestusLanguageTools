@@ -26,7 +26,7 @@ bool trim(char *input, char **nstr) {
 
 	int back = front;
 	for (back = front; back < ilen; back++) {
-		if (isspace(input[back+1]) break;
+		if (isspace(input[back+1])) break;
 	}
 	
 	int len = (back - front) + 1;
@@ -34,6 +34,7 @@ bool trim(char *input, char **nstr) {
 
 	*nstr = calloc(len+1, sizeof(char));
 	strncpy(*nstr, input+front, len);
+	return true;
 }
 
 void add_def(struct lexic_vocabulary *dict, struct token_definition def) {
@@ -66,7 +67,7 @@ bool Lexic_Vocabulary_Add_Definition(LexicVocabulary *vocab, char *nme, char *rg
 	return true;
 }
 
-void Lexic_Vocabulary_Free(Lexic_Vocabulary *vocab) {
+void Lexic_Vocabulary_Free(LexicVocabulary *vocab) {
 	if (vocab == NULL) return;
 
 	for (int i = 0; i < vocab->def_count; i++) {
@@ -83,17 +84,11 @@ void Lexic_Vocabulary_Free(Lexic_Vocabulary *vocab) {
 LexicVocabulary * Lexic_Vocabulary_Make_From_File(char *file_name) {
 	if (file_name == NULL || file_name[0] == '\0') Lexic_Error("Vocab Make File. Given empty file name?");
 
-	struct lexic_vocabulary dictionary = malloc(sizeof(struct lexic_vocabulary));
-
-	if (strlen(file_name) <= 0) {
-		dictionary->definitions = NULL;
-		dictionary->def_count = 0;
-		return dictionary;
-	}
+	if (strlen(file_name) <= 0) return NULL;
 
 	char *strm = ftostr(file_name);
 	
-	*dictionary = Lexic_Vocabulary_Make_String(strm);
+	struct lexic_vocabulary *dictionary = Lexic_Vocabulary_Make_From_String(strm);
 
 	free(strm);
 	return dictionary;
@@ -106,7 +101,7 @@ LexicVocabulary * Lexic_Vocabulary_Make_From_String(char *stream) {
 	
 	struct lexic_vocabulary dictionary = {.definitions = NULL, .def_count = 0};
 
-	char substr[100]; size_t nconsume_ind = 0;
+	char substr[100]; size_t nconsumed_ind = 0;
 	char *nme = NULL;
 	int slen = strlen(stream);
 	for (int i = 0; i < slen; i++) {
@@ -117,11 +112,11 @@ LexicVocabulary * Lexic_Vocabulary_Make_From_String(char *stream) {
 			if (sublen <= 0) Lexic_Error("Empty Token Name.");
 			if (sublen >= 100) Lexic_Error("Lexic does not support names longer than 99 characters!");
 
-			strncpy(substr, stream+nconsume_ind, sublen);
+			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
 			if (!trim(substr, &nme)) Lexic_Error("Empty Token Name.");
 			nconsumed_ind = i+1;
-		} else if (stream[i] == '\n') {
+		} else if (stream[i] == '\n' || i == slen-1) { //new line or eof
 			Lexic_Warn("Vocab Make String. Found Definition.", LWT_DEBUG);
 
 			if (nme == NULL) Lexic_Error("Missing Token Name for Definition.");
@@ -129,7 +124,7 @@ LexicVocabulary * Lexic_Vocabulary_Make_From_String(char *stream) {
 			int sublen = (i-1) - nconsumed_ind + 1;
 			if (sublen <= 0) Lexic_Error("Empty Token Definition.");
 			if (sublen >= 100) Lexic_Error("Lexic does not support definitions longer than 99 characters!");
-			strncpy(substr, stream+nconsume_ind, sublen);
+			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
 			struct token_definition dd = {.name = nme, .regex = NULL};
 			if (!trim(substr, &dd.regex)) Lexic_Error("Empty Token Definition.");

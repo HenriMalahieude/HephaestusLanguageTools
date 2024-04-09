@@ -3,6 +3,10 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
+vocab: warn.o validate.o
+	@echo 'Vocab Make Tests'
+	@$(CC) ../vocab.c ../../private/vocab.c ../../private/file_to_str.c warn.o validate.o -D VERBOSE -o test_vocab_make $(FLAGS)
+
 rgx_all: match.o warn.o
 	@echo 'All Regex Tests'
 	@$(CC) ../all_regex.c warn.o match.o ../group.c ../qualifier.c ../escaped.c ../brackets.c ../or.c ../direct.c -D ALL_TESTS -o test_regex_all $(FLAGS)
