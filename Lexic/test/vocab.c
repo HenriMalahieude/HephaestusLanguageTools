@@ -15,7 +15,7 @@ void ReportResult(char *msg, bool result) {
 
 void VocabularyMakeTests(){
 #ifdef VERBOSE
-	printf("[!] Starting Vocabulary Make Tests");
+	printf("[!] Starting Vocabulary Make Tests\n");
 #endif
 
 	struct lexic_vocabulary *first = Lexic_Vocabulary_Allocate(); ReportResult("Allocation", first != NULL);
@@ -43,17 +43,18 @@ void VocabularyMakeTests(){
 	ReportResult("File7", strcmp(first->definitions[3].regex, "-?[0-9]+(\\.[0-9]+)?") == 0);
 
 	Lexic_Vocabulary_Free(first);
-	first = Lexic_Vocabulary_Make_From_String("THING: 00\n ITEM: 11");
+	first = Lexic_Vocabulary_Make_From_String("THING: 00\n\n ITEM: 11");
 	ReportResult("String1", first->def_count == 2);
 	ReportResult("String2", strcmp(first->definitions[0].name, "THING") == 0);
 	ReportResult("String3", strcmp(first->definitions[1].regex, "11") == 0);
 
 #ifdef VERBOSE
-	printf("[!] Starting Vocabulary Make Tests");
+	printf("[!] Starting Vocabulary Make Tests\n");
 #endif
 }
 
 int main(void) {
+	//warn_level = LWT_DEBUG;
 	VocabularyMakeTests();
 	return 0;
 }

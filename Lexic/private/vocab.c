@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -116,12 +117,15 @@ LexicVocabulary * Lexic_Vocabulary_Make_From_String(char *stream) {
 			substr[sublen] = '\0';
 			if (!trim(substr, &nme)) Lexic_Error("Empty Token Name.");
 			nconsumed_ind = i+1;
-		} else if (stream[i] == '\n' || i == slen-1) { //new line or eof
+
+			if (warn_level == LWT_DEBUG) printf("name found: %s\n", nme);	
+		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
 			Lexic_Warn("Vocab Make String. Found Definition.", LWT_DEBUG);
 
-			if (nme == NULL) Lexic_Error("Missing Token Name for Definition.");
+			if (nme == NULL) continue; //means it was an empty line
 
-			int sublen = (i-1) - nconsumed_ind + 1;
+			int sublen = (i-1) - nconsumed_ind + 1;	
+			if (i >= slen-1) sublen++;
 			if (sublen <= 0) Lexic_Error("Empty Token Definition.");
 			if (sublen >= 100) Lexic_Error("Lexic does not support definitions longer than 99 characters!");
 			strncpy(substr, stream+nconsumed_ind, sublen);
