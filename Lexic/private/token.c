@@ -5,7 +5,7 @@
 
 char * ftostr(char *file_name);
 
-//returns the index of the matching token definition to input
+//returns the index of the matching token definition to input, or -1 if no match
 int match_within_vocabulary(struct lexic_vocabulary *vocab, char *input) {	
 	int match_index = -1;
 	
@@ -21,13 +21,15 @@ int match_within_vocabulary(struct lexic_vocabulary *vocab, char *input) {
 }
 
 void add_token_to_tstream(struct lexic_token **tstrm, size_t *tlen, struct token_definition tdef, char *match) {
-	*tstrm = realloc(*tstrm, (++*tlen) * sizeof(struct lexic_token));
-	if (*tstrm) Lexic_Error("_add_token_to_tstream. reallocation failed?");
+	*tlen += 1;
+	*tstrm = realloc(*tstrm, *tlen * sizeof(struct lexic_token));
+
+	if (*tstrm == NULL) Lexic_Error("_add_token_to_tstream. reallocation failed?");
 
 	tstrm[*tlen-1].definition_name = NULL; //delineate
 	
 	if (*tlen > 1) {
-		struct lexic_token *tok = tstrm[tlen-2];
+		struct lexic_token *tok = &tstrm[tlen-2];
 		tok->definition_name = calloc(strlen(tdef.name)+1, sizeof(char)); strcpy(tok->definition_name, tdef.name);
 		tok->matching_input = calloc(strlen(match)+1, sizeof(char)); strcpy(tok->matching_input, match);
 		tok->line = regex_line_no;
@@ -47,11 +49,10 @@ LexicToken * Lexic_Token_Stream_Make_From_File(char *file_name, LexicVocabulary 
 	return tstrm;
 }
 
-//Random TODO Idea: What if we made a regex tree which could reduce this O(m*n) procedure down, would it improve time complexity?
+//Random TODO Idea: What if we made a regex tree, would reduce it reduce this O(m*n) procedure down? Would it improve time complexity?
 LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *vocab) {
 	if (vocab == NULL) Lexic_Error("Token Stream String. Given NULL Vocab?");
 	if (stream == NULL) Lexic_Error("Token Stream String. Given NULL stream?");
-	if (stream[0] == '\0') return NULL;
 
 	regex_line_no = 1;
 	regex_colu_no = 1;
@@ -64,14 +65,14 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 	size_t nconsumed_ind = 0; //inclusive not consumed idx
 
 	int lst_match = -1; //negative signifies no match
-	int lst_start = -1;
+	int lst_start = -1; //used to warn of dropped characters
 
 	for (size_t i = 0; i < stlen; i++) {
 		int sublen = i - nconsumed_ind; //this means i is exclusive
 		if (sublen <= 0) continue; //don't support 0-string matches
-		if (sublen >= 99) {
+		if (sublen > 99) {
 			Lexic_Warn("Token Stream String. Reached 99 token limit before consumption.", LWT_MJRWRN);
-			break;
+			break; //don't panic tho, just return what we got
 		}
 
 		strncpy(substring, stream+nconsumed_ind, sublen);
@@ -91,18 +92,23 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 			}
 		}
 
-		if (cur_match >= 0) {
+		if (cur_match >= 0) { //did we match here?
 			if (i < stlen-1) {
 				lst_match = cur_match;
 				lst_start = cur_start;
 			} else { //eof, consume regardless
 				if (cur_start != nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence! (EOF)", LWT_VERBSE);
 				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
+				nconsumed_ind = i;
 			}
-		} else if (lst_match >= 0) {
+		} else if (lst_match >= 0) { //did we match before this new character?
 			if (lst_start != nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence!", LWT_VERBSE);
-			add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
-		}
+			if (sublen <= 1) Lexic_Error("Token Stream String. How did we match a 0-length character? Fatal Error!");
+
+			substring[sublen-1] = '\0'; //don't "match" the new character
+			add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
+			nconsumed_ind = i-1;
+		} //otherwise keep going
 
 		if (stream[i] == '\n') {
 			regex_line_no++;

@@ -32,10 +32,10 @@ void Lexic_Vocabulary_Free(LexicVocabulary *);
 
 /*----------------------------Token Stream----------------------------*/
 
-//Allocate and Populate a null-terminated (by name field) Token Stream from a File
+//Allocate and Populate a null-terminated (by definition_name field) Token Stream from a File
 LexicToken * Lexic_Token_Stream_Make_From_File(char *file_name, LexicVocabulary *vocab);
 
-//Allocate and Populate a null-terminated (by name field) Token Stream from a Character Stream
+//Allocate and Populate a null-terminated (by definition_name field) Token Stream from a Character Stream
 LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *vocab);
 
 //Free a null-terminated Token Stream
