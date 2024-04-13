@@ -3,6 +3,10 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
+token: warn.o
+	@echo 'Token Stream Tests'
+	@$(CC) ../token.c ../../private/token.c ../../private/vocab.c ../../private/file_to_str.c warn.o -D VERBOSE -o test_token_stream $(FLAGS)
+
 vocab: warn.o validate.o
 	@echo 'Vocab Make Tests'
 	@$(CC) ../vocab.c ../../private/vocab.c ../../private/file_to_str.c warn.o validate.o -D VERBOSE -o test_vocab_make $(FLAGS)
