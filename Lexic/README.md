@@ -6,3 +6,4 @@
 * Remove Snake Case
 * Write CLI Tool for easy tokenizing
 * Complex Error Handling using an Error Type
+* Complete Documentation on how to use it
