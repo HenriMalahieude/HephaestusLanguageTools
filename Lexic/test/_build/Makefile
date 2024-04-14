@@ -3,13 +3,13 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
-token: warn.o
+lxc_token: warn.o match.o validate.o vocab.o file_to_str.o
 	@echo 'Token Stream Tests'
-	@$(CC) ../token.c ../../private/token.c ../../private/vocab.c ../../private/file_to_str.c warn.o -D VERBOSE -o test_token_stream $(FLAGS)
+	@$(CC) ../token.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_stream $(FLAGS)
 
-vocab: warn.o validate.o
+lxc_vocab: vocab.o warn.o validate.o file_to_str.o
 	@echo 'Vocab Make Tests'
-	@$(CC) ../vocab.c ../../private/vocab.c ../../private/file_to_str.c warn.o validate.o -D VERBOSE -o test_vocab_make $(FLAGS)
+	@$(CC) ../vocab.c vocab.o warn.o validate.o file_to_str.o -D VERBOSE -o test_vocab_make $(FLAGS)
 
 rgx_all: match.o warn.o
 	@echo 'All Regex Tests'
@@ -42,6 +42,14 @@ rgx_direct: match.o warn.o
 rgx_validate: validate.o warn.o
 	@echo 'Regex Validation Test'
 	@$(CC) ../validation.c validate.o warn.o -D VERBOSE -o test_regex_validation $(FLAGS)
+
+file_to_str.o: ../../private/file_to_str.c
+	@echo 'file_to_str.o'
+	@$(CC) ../../private/file_to_str.c -c $(FLAGS)
+
+vocab.o: ../../lexic.h ../../private/lexic_internal.h ../../private/vocab.c
+	@echo 'vocab.c -> .o'
+	@$(CC) ../../private/vocab.c -c $(FLAGS)
 
 match.o: ../../lexic.h ../../private/regex.h ../../private/match.c
 	@echo 'match.c -> .o'

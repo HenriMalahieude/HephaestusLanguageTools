@@ -1,3 +1,8 @@
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "../lexic.h"
 #include "lexic_internal.h"
 #include "warn.h"
@@ -7,11 +12,12 @@ char * ftostr(char *file_name);
 
 //returns the index of the matching token definition to input, or -1 if no match
 int match_within_vocabulary(struct lexic_vocabulary *vocab, char *input) {	
+	if (warn_level == LWT_DEBUG) printf("_match_within_vocabulary. Finding match for '%s'\n", input);
 	int match_index = -1;
 	
 	for (int defi = 0; defi < vocab->def_count; defi++) {
 		struct token_definition tdef = vocab->definitions[defi];
-		if (Regex_Match(input, tdef.regex)) {
+		if (Regex_Match(tdef.regex, input)) {
 			match_index = defi;
 			break;
 		}
@@ -21,15 +27,17 @@ int match_within_vocabulary(struct lexic_vocabulary *vocab, char *input) {
 }
 
 void add_token_to_tstream(struct lexic_token **tstrm, size_t *tlen, struct token_definition tdef, char *match) {
+	if (warn_level == LWT_DEBUG) printf("_add_token_to_tstream. Adding '%s' to tstream!\n", tdef.name);
 	*tlen += 1;
 	*tstrm = realloc(*tstrm, *tlen * sizeof(struct lexic_token));
 
 	if (*tstrm == NULL) Lexic_Error("_add_token_to_tstream. reallocation failed?");
 
-	tstrm[*tlen-1].definition_name = NULL; //delineate
+
+	(*tstrm)[*tlen - 1].definition_name = NULL; //delineate
 	
 	if (*tlen > 1) {
-		struct lexic_token *tok = &tstrm[tlen-2];
+		struct lexic_token *tok = &(*tstrm)[*tlen - 2];
 		tok->definition_name = calloc(strlen(tdef.name)+1, sizeof(char)); strcpy(tok->definition_name, tdef.name);
 		tok->matching_input = calloc(strlen(match)+1, sizeof(char)); strcpy(tok->matching_input, match);
 		tok->line = regex_line_no;
@@ -43,7 +51,7 @@ LexicToken * Lexic_Token_Stream_Make_From_File(char *file_name, LexicVocabulary 
 
 	char *strm = ftostr(file_name);
 
-	struct lexic_token *tstrm = Lexic_Token_Stream_String(strm, vocab);
+	struct lexic_token *tstrm = Lexic_Token_Stream_Make_From_String(strm, vocab);
 
 	free(strm);
 	return tstrm;
@@ -67,8 +75,9 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 	int lst_match = -1; //negative signifies no match
 	int lst_start = -1; //used to warn of dropped characters
 
+	if (warn_level == LWT_DEBUG) printf("Beginning token stream creation loop!\n");
 	for (size_t i = 0; i < stlen; i++) {
-		int sublen = i - nconsumed_ind; //this means i is exclusive
+		int sublen = i - nconsumed_ind + 1; //this means i is inclusive
 		if (sublen <= 0) continue; //don't support 0-string matches
 		if (sublen > 99) {
 			Lexic_Warn("Token Stream String. Reached 99 token limit before consumption.", LWT_MJRWRN);
@@ -81,8 +90,9 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 		int cur_match = match_within_vocabulary(vocab, substring);
 		int cur_start = nconsumed_ind;
 
+		if (warn_level == LWT_DEBUG) printf("We found: '%d' match in vocab (attempt 1)\n", cur_match);
 		if (cur_match < 0 && sublen > 1) { //need to drop characters at front?
-			for (int j = 1; j < sublen-1; j++) { //1st idx -> 2nd last idx, so it doesn't drop last character
+			for (int j = 1; j < sublen; j++) { //just don't drop last character
 				char *subsub = substring + j;
 				cur_match = match_within_vocabulary(vocab, subsub);
 				if (cur_match > -1) {
@@ -90,24 +100,46 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 					break;
 				}
 			}
+			if (warn_level == LWT_DEBUG) printf("So it appears we needed to drop characters: now have '%d' match in vocab\n", cur_match);
 		}
 
 		if (cur_match >= 0) { //did we match here?
 			if (i < stlen-1) {
+				if (lst_match > -1 && lst_match != cur_match && lst_start < cur_start) {		
+					int old = regex_colu_no;
+					regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
+					substring[sublen-1] = '\0'; //don't "match" the new character
+					add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
+					nconsumed_ind = i;
+					regex_colu_no += old;	
+				}
+
+				//reset to new stuff
 				lst_match = cur_match;
 				lst_start = cur_start;
 			} else { //eof, consume regardless
-				if (cur_start != nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence! (EOF)", LWT_VERBSE);
+				if (cur_start != (int)nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence! (EOF)", LWT_VERBSE);
+				
+				int old = regex_colu_no;
+				regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
 				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
-				nconsumed_ind = i;
+				nconsumed_ind = i+1;
+				regex_colu_no = old;
 			}
 		} else if (lst_match >= 0) { //did we match before this new character?
-			if (lst_start != nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence!", LWT_VERBSE);
+			if (lst_start != (int)nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence!", LWT_VERBSE);
 			if (sublen <= 1) Lexic_Error("Token Stream String. How did we match a 0-length character? Fatal Error!");
 
+			int old = regex_colu_no;
+			regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
 			substring[sublen-1] = '\0'; //don't "match" the new character
 			add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
-			nconsumed_ind = i-1;
+			nconsumed_ind = i;
+			regex_colu_no += old;
+			
+			//reset
+			lst_match = -1;
+			lst_start = nconsumed_ind;
 		} //otherwise keep going
 
 		if (stream[i] == '\n') {
@@ -117,6 +149,8 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 			regex_colu_no++;
 		}
 	}
+
+	return tstrm;
 }
 
 //assuming that definition_name and matching_input fields are malloc copies
