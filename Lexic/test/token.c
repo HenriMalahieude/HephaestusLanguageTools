@@ -8,7 +8,7 @@
 int test_count = 1;
 void ReportResult(int errCode, struct lexic_token out, struct lexic_token exp) {
 	if (errCode > 0) {
-		printf("[X] Token Stream Test (%d): ", test_count);
+		printf("[X] Token Stream Test %d: ", test_count);
 		switch (errCode) {
 			case 1:
 				printf("def (out '%s' vs '%s')\n", out.definition_name, exp.definition_name);
@@ -28,7 +28,7 @@ void ReportResult(int errCode, struct lexic_token out, struct lexic_token exp) {
 	} 
 #ifdef VERBOSE
 	else {
-		printf("[.] Token Stream Test (%d) Pass\n", test_count);
+		printf("[.] Token Stream Test %d Pass\n", test_count);
 	}
 #endif
 
@@ -132,7 +132,7 @@ void TokenStreamTest() {
 	Lexic_Token_Stream_Free(tstream);
 
 #ifdef VERBOSE
-	printf("[!] Token Stream Test Finished!\n");
+	printf("[!] Token Stream Test Finished Successfully!\n");
 #endif
 }
 

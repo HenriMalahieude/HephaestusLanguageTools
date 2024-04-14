@@ -40,8 +40,15 @@ void add_token_to_tstream(struct lexic_token **tstrm, size_t *tlen, struct token
 		struct lexic_token *tok = &(*tstrm)[*tlen - 2];
 		tok->definition_name = calloc(strlen(tdef.name)+1, sizeof(char)); strcpy(tok->definition_name, tdef.name);
 		tok->matching_input = calloc(strlen(match)+1, sizeof(char)); strcpy(tok->matching_input, match);
+
+		int old = regex_colu_no; //move "column" number to front of instance
+		regex_colu_no -= strlen(match)-1; if (regex_colu_no <= 0) regex_colu_no = 1;
+		//printf("column at %d, w/ strlen %d (- 1) and max so now at %d\n", old, strlen(match), regex_colu_no);
+
 		tok->line = regex_line_no;
 		tok->col = regex_colu_no;
+
+		regex_colu_no = old; //restore for future tokens
 	}
 }
 
@@ -57,7 +64,7 @@ LexicToken * Lexic_Token_Stream_Make_From_File(char *file_name, LexicVocabulary 
 	return tstrm;
 }
 
-//Random TODO Idea: What if we made a regex tree, would reduce it reduce this O(m*n) procedure down? Would it improve time complexity?
+//Random TODO Idea: What if we made a regex tree, would it reduce this O(m*n) procedure down? Would it improve time complexity?
 LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *vocab) {
 	if (vocab == NULL) Lexic_Error("Token Stream String. Given NULL Vocab?");
 	if (stream == NULL) Lexic_Error("Token Stream String. Given NULL stream?");
@@ -77,6 +84,7 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 
 	if (warn_level == LWT_DEBUG) printf("Beginning token stream creation loop!\n");
 	for (size_t i = 0; i < stlen; i++) {
+		//printf("at line %d, column %d\n", regex_line_no, regex_colu_no);
 		int sublen = i - nconsumed_ind + 1; //this means i is inclusive
 		if (sublen <= 0) continue; //don't support 0-string matches
 		if (sublen > 99) {
@@ -104,38 +112,35 @@ LexicToken * Lexic_Token_Stream_Make_From_String(char *stream, LexicVocabulary *
 		}
 
 		if (cur_match >= 0) { //did we match here?
-			if (i < stlen-1) {
-				if (lst_match > -1 && lst_match != cur_match && lst_start < cur_start) {		
-					int old = regex_colu_no;
-					regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
-					substring[sublen-1] = '\0'; //don't "match" the new character
-					add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
-					nconsumed_ind = i;
-					regex_colu_no += old;	
-				}
+			if (lst_match > -1 && lst_match != cur_match && lst_start < cur_start) {		
+				regex_colu_no -= 1; //since we don't use this "new" char
+				substring[sublen-1] = '\0'; //don't "match" the new character
+				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
+				nconsumed_ind = i;
+				regex_colu_no += 1;
 
-				//reset to new stuff
+				strncpy(substring, stream+nconsumed_ind, 1); //incase of edge case like last is dif or somthn
+				substring[1] = '\0';
+			}
+
+			if (i < stlen-1) { //reset to new stuff
 				lst_match = cur_match;
 				lst_start = cur_start;
 			} else { //eof, consume regardless
 				if (cur_start != (int)nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence! (EOF)", LWT_VERBSE);
 				
-				int old = regex_colu_no;
-				regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
 				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
 				nconsumed_ind = i+1;
-				regex_colu_no = old;
 			}
 		} else if (lst_match >= 0) { //did we match before this new character?
 			if (lst_start != (int)nconsumed_ind) Lexic_Warn("Dropping unmatched characters at front of unconsumed character sequence!", LWT_VERBSE);
 			if (sublen <= 1) Lexic_Error("Token Stream String. How did we match a 0-length character? Fatal Error!");
 
-			int old = regex_colu_no;
-			regex_colu_no -= sublen-1; if (regex_colu_no <= 0) regex_colu_no = 1;
+			regex_colu_no -= 1; //since we don't use this "new" char
 			substring[sublen-1] = '\0'; //don't "match" the new character
 			add_token_to_tstream(&tstrm, &tlen, vocab->definitions[lst_match], substring+(lst_start-nconsumed_ind));
 			nconsumed_ind = i;
-			regex_colu_no += old;
+			regex_colu_no += 1;
 			
 			//reset
 			lst_match = -1;
