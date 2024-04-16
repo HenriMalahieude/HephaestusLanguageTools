@@ -3,6 +3,10 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
+lxc_name: warn.o match.o validate.o vocab.o file_to_str.o
+	@echo 'Token Name Stream Tests'
+	@$(CC) ../name.c ../../private/name.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_name $(FLAGS)
+
 lxc_token: warn.o match.o validate.o vocab.o file_to_str.o
 	@echo 'Token Stream Tests'
 	@$(CC) ../token.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_stream $(FLAGS)

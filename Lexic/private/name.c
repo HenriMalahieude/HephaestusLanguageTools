@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../lexic.h"
 #include "lexic_internal.h"
@@ -13,7 +14,7 @@ char ** Lexic_Token_Name_Stream_Make_From_File(char *file_name, LexicVocabulary 
 
 	char *strm = ftostr(file_name);
 
-	char **namestrm = Lexic_Token_Name_Stream_String(strm, vocab);
+	char **namestrm = Lexic_Token_Name_Stream_Make_From_String(strm, vocab);
 
 	free(strm);
 	return namestrm;
@@ -23,8 +24,8 @@ char ** Lexic_Token_Name_Stream_Make_From_String(char *stream, LexicVocabulary *
 	if (stream == NULL || stream[0] == '\0') return NULL;
 	if (vocab == NULL) Lexic_Error("Name Stream String. Given NULL Vocab?");
 
-	struct lexic_token *tstrm = Lexic_Token_Stream_String(stream, vocab);
-	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] = '\0') return NULL;
+	struct lexic_token *tstrm = Lexic_Token_Stream_Make_From_String(stream, vocab);
+	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') return NULL;
 
 	char **namestrm = NULL;
 	int name_strm_cnt = 0;
