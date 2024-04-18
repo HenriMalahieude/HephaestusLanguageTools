@@ -36,7 +36,7 @@ int regex_colu_no = 0;
 int test_count = 1;
 
 int main(void) {
-	warn_level = LWT_DEBUG;
+	//warn_level = LWT_DEBUG;
 	DirectTest();
 	return 0;
 }

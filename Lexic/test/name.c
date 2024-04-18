@@ -38,7 +38,7 @@ void ReportResult(bool succ, char *output, char *expected) {
 }
 
 bool Test(LexicVocabulary *vocab, char *stream, char **expected) {
-	char **output = Lexic_Token_Name_Stream_Make_From_String(stream, vocab);
+	char **output = LexicTokenNamesFromString(stream, vocab);
 	
 	int error_index = 0;
 	bool succ = CompareResults(output, expected, &error_index);
@@ -54,7 +54,7 @@ void TokenNameStreamTests(){
 	printf("[!] Token Name Stream Tests Start!\n");
 #endif
 
-	LexicVocabulary *vocab = Lexic_Vocabulary_Make_From_File("../example.vocab");
+	LexicVocabulary *vocab = LexicVocabularyFromFile("../example.vocab");
 	
 	char *names[6] = {
 		"TYPE",

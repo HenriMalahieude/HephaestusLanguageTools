@@ -25,7 +25,7 @@ void GroupTest(){
 	TEST_REGEX(built, "-123.123.123", false);
 	TEST_REGEX(built, "-1.ab", false);
 	TEST_REGEX(built, "asdf", false);
-	TEST_REGEX(built, "--1-1", false);
+	TEST_REGEX(built, "--1-1", false);// */
 
 	char nested[] = "ab(cd*(a*f*)?)+";
 	TEST_REGEX(nested, "abcddddddd", true);
@@ -33,7 +33,7 @@ void GroupTest(){
 	TEST_REGEX(nested, "abcddfff", true);
 	TEST_REGEX(nested, "abcdafcdafccd", true);
 	TEST_REGEX(nested, "abcddfa", false);
-	TEST_REGEX(nested, "abc", true);
+	TEST_REGEX(nested, "abc", true);// */
 
 #ifdef VERBOSE
 	printf("[!] Regex Group Test Finished\n");

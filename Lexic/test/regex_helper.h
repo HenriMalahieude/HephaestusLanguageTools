@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../lexic.h"
 #include "../private/lexic_internal.h"
 #include "../private/warn.h"
 #include "../private/regex.h"
@@ -16,7 +15,7 @@
 extern int test_count;
 
 static void TEST_REGEX(char *rgx, char *str, bool resolve_to){
-	bool val = (Regex_Match(rgx, str) == resolve_to);
+	bool val = (RegexMatch(rgx, str) == resolve_to);
 	
 #ifndef VERBOSE
 	if (!val) printf("[X] %s Test %d (%s) Fail w/ %s\n", TEST_NAME, test_count++, rgx, str);

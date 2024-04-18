@@ -6,7 +6,7 @@
 #include "../private/warn.h"
 
 int test_count = 1;
-void ReportResult(int errCode, struct lexic_token out, struct lexic_token exp) {
+void ReportResult(int errCode, struct lxc_token out, struct lxc_token exp) {
 	if (errCode > 0) {
 		printf("[X] Token Stream Test %d: ", test_count);
 		switch (errCode) {
@@ -35,7 +35,7 @@ void ReportResult(int errCode, struct lexic_token out, struct lexic_token exp) {
 	test_count++;
 }
 
-int CompareTokens(struct lexic_token streamout, struct lexic_token expected) {
+int CompareTokens(struct lxc_token streamout, struct lxc_token expected) {
 	if (strcmp(streamout.definition_name, expected.definition_name) != 0) return 1;
 	if (expected.definition_name != NULL && strcmp(streamout.matching_input, expected.matching_input) != 0) return 2;
 	if (expected.line >= 0 && streamout.line != expected.line) return 3;
@@ -49,30 +49,30 @@ void TokenStreamTest() {
 	printf("[!] Token Stream Test Start!\n");
 #endif
 
-	LexicVocabulary *vocab = Lexic_Vocabulary_Allocate();
-	Lexic_Vocabulary_Add_Definition(vocab, "digit", "[0-9]*");
-	Lexic_Vocabulary_Add_Definition(vocab, "alpha", "[a-z]*");
+	LexicVocabulary *vocab = LexicVocabularyAllocate();
+	LexicVocabularyDefinitionAdd(vocab, "digit", "[0-9]*");
+	LexicVocabularyDefinitionAdd(vocab, "alpha", "[a-z]*");
 
 	int result = 0; LexicToken expected;
 
 	//one token type
-	LexicToken *tstream = Lexic_Token_Stream_Make_From_String("a", vocab);
+	LexicToken *tstream = LexicTokensFromString("a", vocab);
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "a", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
 	ReportResult(result, tstream[0], expected); if (result != 0) return;
 
 	if (tstream[1].definition_name != NULL) return;
-	Lexic_Token_Stream_Free(tstream);
+	LexicTokensFree(tstream);
 
 	//one token type
-	tstream = Lexic_Token_Stream_Make_From_String("0", vocab);
+	tstream = LexicTokensFromString("0", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "0", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
 	ReportResult(result, tstream[0], expected); if (result != 0) return;
-	Lexic_Token_Stream_Free(tstream);
+	LexicTokensFree(tstream);
 
 	//multi stream
-	tstream = Lexic_Token_Stream_Make_From_String("ab c", vocab);
+	tstream = LexicTokensFromString("ab c", vocab);
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "ab", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
 	ReportResult(result, tstream[0], expected); if (result != 0) return;
@@ -80,10 +80,10 @@ void TokenStreamTest() {
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "c", .line = 1, .col = 4};
 	result = CompareTokens(tstream[1], expected);
 	ReportResult(result, tstream[1], expected); if (result != 0) return;
-	Lexic_Token_Stream_Free(tstream);
+	LexicTokensFree(tstream);
 
 	//multi stream
-	tstream = Lexic_Token_Stream_Make_From_String("01 123", vocab);
+	tstream = LexicTokensFromString("01 123", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "01", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
 	ReportResult(result, tstream[0], expected); if (result != 0) return;
@@ -91,10 +91,10 @@ void TokenStreamTest() {
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "123", .line = 1, .col = 4};
 	result = CompareTokens(tstream[1], expected);
 	ReportResult(result, tstream[1], expected); if (result != 0) return;
-	Lexic_Token_Stream_Free(tstream);
+	LexicTokensFree(tstream);
 
 	//segemented together
-	tstream = Lexic_Token_Stream_Make_From_String("0a\nhsdfbz183 0a f9", vocab);
+	tstream = LexicTokensFromString("0a\nhsdfbz183 0a f9", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "0", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
 	ReportResult(result, tstream[0], expected); if (result != 0) return;
@@ -129,7 +129,7 @@ void TokenStreamTest() {
 
 	if (tstream[8].definition_name != NULL) return;
 	if (result != 0) return;
-	Lexic_Token_Stream_Free(tstream);
+	LexicTokensFree(tstream);
 
 #ifdef VERBOSE
 	printf("[!] Token Stream Test Finished Successfully!\n");

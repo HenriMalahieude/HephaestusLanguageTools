@@ -4,14 +4,14 @@
 extern int regex_line_no, regex_colu_no;
 
 /*Definition of a Token*/
-struct token_definition {
+struct lxc_definition {
 	char *name;
 	char *regex;
 };
 
 /*Entire Vocabulary Rules*/
-struct lexic_vocabulary {
-	struct token_definition *definitions;
+struct lxc_vocabulary {
+	struct lxc_definition *definitions;
 	int def_count;
 };
 

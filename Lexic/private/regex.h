@@ -2,7 +2,8 @@
 #define __HEPHAESTUS_REGEX__
 #include <stdbool.h>
 
-bool Regex_Validate(char *reg);
+bool RegexValidate(char *reg);
 
-bool Regex_Match(char *reg, char *input);
+bool RegexMatch(char *reg, char *input);
+
 #endif
