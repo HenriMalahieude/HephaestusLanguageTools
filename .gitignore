@@ -2,5 +2,9 @@
 *.out
 *.exe
 
+#Library Files
+*.so
+*.a
+
 #Build Files
 *.o
