@@ -7,13 +7,20 @@
 ---
 ### Using Lexic as a Library
 
+[A Video Example](TODO)
+
 #### Linking the Library
 Within Lexic you'll notice the ``_build`` folder, which is where you'll find the two different versions of lexic to build. You may either link it dynamically, or statically. Either way you'll need to first enter your respective choice and then run make (or mingw32-make). Once that's been built you may link it like so:
 ```make
-gcc main.c -L$(some_path)/Lexic/_build/static/ -I$(some_path)/Lexic/ $(your_flags)
+#for static
+gcc main.c -L $(some_path)/Lexic/_build/static/ -I $(some_path)/Lexic/ -l lexic
+
+#for dynamic (no need for -l if I remember? idk i don't really use this)
+gcc main.c -L $(some_path)/Lexic/_build/dynamic/ -I $(some_path)/Lexic/
 ```
 
-You're welcome to make the _build/dynamic/ folder part of your path to make your life easier, but that's on you tbh.
+You're welcome to make the ``_build/dynamic/ folder`` part of your path to make your life easier, but that's on you tbh.
+And, thinking on this... the liblexic.a file is only 28.6 KB. Very small footprint to deal with.
 
 #### Using the code
 Lexic first expects you to make a vocabulary which defines your language. However, construction is up to the developer/user:
@@ -87,7 +94,8 @@ int main(void) {
     //Or you can use the stripped version which only returns token names
     //end of array delineated with stream[?] == NULL
     char ** str_nstrm = LexicTokenNamesFromString("\nword and whitespace", vocab);
-    //str_nstrm[1] == str_strm[1] 
+    //str_nstrm[1] == str_strm[1].definition_name
+    //etc
 
     char ** file_nstrm = LexicTokenNamesFromFile("main.aws", vocab);
     //etc
@@ -102,15 +110,19 @@ int main(void) {
 }
 ```
 
-#### A Warning
+#### Single Lookahead
 Lexic only has a single lookahead, which should be sufficient for most languages. But it's important to consider your regex's.
-For example, '-?[0-9]+(\.[0-9]+)?' may seem like a reasonable regex to hand Lexic for any and all numbers. However, because of the lookahead a number such as '-5.6' will be parsed as two separate numbers: '-5' and '6', the '.' will be dropped.
-Why is that? Well as stated before Lexic only has a single lookahead. As it's considering what Token to produce, it will consume up to "-5" and say, ok this matches a number. It then looks ahead to see "-5.", according to the last half of the regex we provided, "(\.[0-9]+)?", the regex will not consume the period because it's missing a number after the period. Therefore it will consume "-5" as a singular number and move on to produce more tokens. But it didn't look any more ahead to see the 6 which would've matched.
 
-The regex only needs to be simplified: '-?[0-9]+\.?[0-9]*', now "-5.6" will be completely consumed because '-5.' is a valid token.
+For example, `-?[0-9]+(\.[0-9]+)?` may seem like a reasonable regex to hand Lexic for any and all numbers. However, because of the lookahead a number such as '-5.6' will be parsed as two separate numbers: '-5' and '6', the '.' will be dropped.
+
+Why is that? Well as stated before Lexic only has a single lookahead. As it's considering what Token to produce, it will consume up to "-5" and say, ok this matches a number. It then looks ahead to see '-5.', according to the last half of the regex we provided, `(\.[0-9]+)?`, the regex will not consume the period because it's missing a number after the period. Therefore it will consume '-5' as a singular number and move on to produce more tokens. But it didn't look any more ahead to see the 6 which would've matched.
+
+The regex only needs to be simplified: `-?[0-9]+\.?[0-9]*`, now "-5.6" will be completely consumed because '-5.' is a valid token.
 
 If you'd like to prevent '-5.' to be tokenized, you could attempt to break up the possible numbers into integers and floats. Or you can always do a second token pass to clear illegal tokens. Up to your creativity really.
 
 ---
 ### Using the CLI Tool
-TODO
+It's fairly standard. You may either `./lexic_cli` or `./lexic_cli file.cpp` to launch. Afterwards, it will allow you to create your own vocabulary if you didn't supply it with a file, and then it will tokenize strings you give it.
+
+That's it really. If you'd like to see how it was made you can look at [this](TODO).
