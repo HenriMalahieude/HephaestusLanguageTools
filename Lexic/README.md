@@ -1,9 +1,6 @@
 # Lexic
 ## A Lexical Analyzer (Tokenizer)
 
-### TODO
-* Write CLI Tool for easy tokenizing
-
 ---
 ### Using Lexic as a Library
 
