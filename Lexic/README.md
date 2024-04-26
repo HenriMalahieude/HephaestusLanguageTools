@@ -4,7 +4,7 @@
 ---
 ### Using Lexic as a Library
 
-[A Video Example](TODO)
+[A Video Example](https://youtu.be/9clwgveTgrs)
 
 #### Linking the Library
 Within Lexic you'll notice the ``_build`` folder, which is where you'll find the two different versions of lexic to build. You may either link it dynamically, or statically. Either way you'll need to first enter your respective choice and then run make (or mingw32-make). Once that's been built you may link it like so:
@@ -122,4 +122,4 @@ If you'd like to prevent '-5.' to be tokenized, you could attempt to break up th
 ### Using the CLI Tool
 It's fairly standard. You may either `./lexic_cli` or `./lexic_cli file.cpp` to launch. Afterwards, it will allow you to create your own vocabulary if you didn't supply it with a file, and then it will tokenize strings you give it.
 
-That's it really. If you'd like to see how it was made you can look at [this](TODO).
+That's it really. If you'd like to see how it was made you can look at [this](https://youtu.be/9clwgveTgrs).
