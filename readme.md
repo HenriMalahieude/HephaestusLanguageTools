@@ -30,7 +30,7 @@ I also would like to make this a modern toolset:
 
 ---
 TODO List:
-1. "Lexic" Tokenizer
+1. ~~"Lexic" Tokenizer~~
 2. "Syntac" Parsers
     1. Top-Down LL(1)
     2. Bottom-Up LR(0)
