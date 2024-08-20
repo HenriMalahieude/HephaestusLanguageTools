@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 int regex_line_no = 0;
 int regex_colu_no = 0;
 int test_count = 1;
@@ -25,6 +24,9 @@ int main(void) {
 	test_count = 1;
 
 	QualifierTest();
+	test_count = 1;
+
+	GroupTest();
 	test_count = 1;
 
 	OrTest();

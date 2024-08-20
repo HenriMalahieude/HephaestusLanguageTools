@@ -5,8 +5,13 @@
 #include "../private/lexic_internal.h"
 #include "../private/warn.h"
 
+#ifndef ALL_TESTS
 int test_count = 1;
-void ReportResult(int errCode, struct lxc_token out, struct lxc_token exp) {
+#else 
+extern int test_count;
+#endif
+
+static void ReportResult(int errCode, struct lxc_token out, struct lxc_token exp) {
 	if (errCode > 0) {
 		printf("[X] Token Stream Test %d: ", test_count);
 		switch (errCode) {
@@ -25,6 +30,7 @@ void ReportResult(int errCode, struct lxc_token out, struct lxc_token exp) {
 			default:
 				break;
 		}
+
 	} 
 #ifdef VERBOSE
 	else {
@@ -44,7 +50,7 @@ int CompareTokens(struct lxc_token streamout, struct lxc_token expected) {
 	return 0;
 }
 
-void TokenStreamTest() {
+bool TokenStreamTest() {
 #ifdef VERBOSE
 	printf("[!] Token Stream Test Start!\n");
 #endif
@@ -59,85 +65,88 @@ void TokenStreamTest() {
 	LexicToken *tstream = LexicTokensFromString("a", vocab);
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "a", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
-	ReportResult(result, tstream[0], expected); if (result != 0) return;
+	ReportResult(result, tstream[0], expected); if (result != 0) return false;
 
-	if (tstream[1].definition_name != NULL) return;
+	if (tstream[1].definition_name != NULL) return false;
 	LexicTokensFree(tstream);
 
 	//one token type
 	tstream = LexicTokensFromString("0", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "0", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
-	ReportResult(result, tstream[0], expected); if (result != 0) return;
+	ReportResult(result, tstream[0], expected); if (result != 0) return false;
 	LexicTokensFree(tstream);
 
 	//multi stream
 	tstream = LexicTokensFromString("ab c", vocab);
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "ab", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
-	ReportResult(result, tstream[0], expected); if (result != 0) return;
+	ReportResult(result, tstream[0], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "c", .line = 1, .col = 4};
 	result = CompareTokens(tstream[1], expected);
-	ReportResult(result, tstream[1], expected); if (result != 0) return;
+	ReportResult(result, tstream[1], expected); if (result != 0) return false;
 	LexicTokensFree(tstream);
 
 	//multi stream
 	tstream = LexicTokensFromString("01 123", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "01", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
-	ReportResult(result, tstream[0], expected); if (result != 0) return;
+	ReportResult(result, tstream[0], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "123", .line = 1, .col = 4};
 	result = CompareTokens(tstream[1], expected);
-	ReportResult(result, tstream[1], expected); if (result != 0) return;
+	ReportResult(result, tstream[1], expected); if (result != 0) return false;
 	LexicTokensFree(tstream);
 
 	//segemented together
 	tstream = LexicTokensFromString("0a\nhsdfbz183 0a f9", vocab);
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "0", .line = 1, .col = 1};
 	result = CompareTokens(tstream[0], expected);
-	ReportResult(result, tstream[0], expected); if (result != 0) return;
+	ReportResult(result, tstream[0], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "a", .line = 1, .col = 2};
 	result = CompareTokens(tstream[1], expected);
-	ReportResult(result, tstream[1], expected); if (result != 0) return;
+	ReportResult(result, tstream[1], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "hsdfbz", .line = 2, .col = 1};
 	result = CompareTokens(tstream[2], expected);
-	ReportResult(result, tstream[2], expected); if (result != 0) return;
+	ReportResult(result, tstream[2], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "183", .line = 2, .col = 7};
 	result = CompareTokens(tstream[3], expected);
-	ReportResult(result, tstream[3], expected); if (result != 0) return;
+	ReportResult(result, tstream[3], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "0", .line = 2, .col = 11};
 	result = CompareTokens(tstream[4], expected);
-	ReportResult(result, tstream[4], expected); if (result != 0) return;
+	ReportResult(result, tstream[4], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "a", .line = 2, .col = 12};
 	result = CompareTokens(tstream[5], expected);
-	ReportResult(result, tstream[5], expected); if (result != 0) return;
+	ReportResult(result, tstream[5], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "alpha", .matching_input = "f", .line = 2, .col = 14};
 	result = CompareTokens(tstream[6], expected);
-	ReportResult(result, tstream[6], expected); if (result != 0) return;
+	ReportResult(result, tstream[6], expected); if (result != 0) return false;
 
 	expected = (LexicToken){ .definition_name = "digit", .matching_input = "9", .line = 2, .col = 15};
 	result = CompareTokens(tstream[7], expected);
-	ReportResult(result, tstream[7], expected); if (result != 0) return;
+	ReportResult(result, tstream[7], expected); if (result != 0) return false;
 
-	if (tstream[8].definition_name != NULL) return;
-	if (result != 0) return;
+	if (tstream[8].definition_name != NULL) return false;
+	if (result != 0) return false;
 	LexicTokensFree(tstream);
 
 #ifdef VERBOSE
 	printf("[!] Token Stream Test Finished Successfully!\n");
 #endif
+	return true;
 }
 
+#ifndef ALL_TESTS
 int main(void) {
 	//////////////////warn_level = LWT_DEBUG;
 	TokenStreamTest();
 	return 0;
 }
+#endif

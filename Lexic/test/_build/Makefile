@@ -3,6 +3,14 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
+all: warn.o match.o validate.o vocab.o file_to_str.o
+	@echo 'Lexic Comprehensive Test'
+	@$(CC) ../all_test.c ../name.c ../vocab.c ../token.c \
+		../group.c ../qualifier.c ../escaped.c ../brackets.c ../or.c ../direct.c \
+		../../private/name.c ../../private/token.c \
+		warn.o match.o validate.o vocab.o file_to_str.o \
+		-D ALL_TESTS -o test_all $(FLAGS)
+
 lxc_name: warn.o match.o validate.o vocab.o file_to_str.o
 	@echo 'Token Name Stream Tests'
 	@$(CC) ../name.c ../../private/name.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_name $(FLAGS)

@@ -5,12 +5,20 @@
 #include "../private/lexic_internal.h"
 #include "../private/warn.h"
 
-bool ReportResult(char *msg, bool result) {
+#ifndef ALL_TESTS
+int test_count = 1;
+#else
+extern int test_count;
+#endif
+
+
+static bool ReportResult(char *msg, bool result) {
 #ifdef VERBOSE
-	printf("[?] Vocab Test (%s): %d\n", msg, result);
+	printf("[%d] Vocab Test (%s): %d\n", test_count, msg, result);
 #else
 	if (!result) printf("[X] Vocab Test (%s) failed\n", msg);
 #endif
+	test_count++;
 
 	return result;
 }
@@ -62,8 +70,10 @@ bool VocabularyMakeTests(){
 	return true;
 }
 
+#ifndef ALL_TESTS
 int main(void) {
 	//warn_level = LWT_DEBUG;
 	VocabularyMakeTests();
 	return 0;
 }
+#endif
