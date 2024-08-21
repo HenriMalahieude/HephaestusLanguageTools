@@ -24,6 +24,7 @@ static bool ReportResult(char *msg, bool result) {
 }
 
 bool VocabularyMakeTests(){
+	return false;
 #ifdef VERBOSE
 	printf("[!] Starting Vocabulary Make Tests\n");
 #endif

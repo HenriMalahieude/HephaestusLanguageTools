@@ -14,7 +14,7 @@
 
 extern int test_count;
 
-static void TEST_REGEX(char *rgx, char *str, bool resolve_to){
+static bool TEST_REGEX(char *rgx, char *str, bool resolve_to){
 	bool val = (RegexMatch(rgx, str) == resolve_to);
 	
 #ifndef VERBOSE
@@ -24,6 +24,8 @@ static void TEST_REGEX(char *rgx, char *str, bool resolve_to){
 	if (!val) printf("[X] w/ '%s' -> '%s'\n", rgx, str);
 	if (val) printf("[+]\n");
 #endif
+	
+	return val;
 }
 
 #endif
