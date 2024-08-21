@@ -19,4 +19,6 @@ jobs:
         make
         
     - name: Run tests
-      run: ./test_all
+      run: |
+        cd Lexic/test/_build/
+        ./test_all
