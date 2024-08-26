@@ -3,12 +3,12 @@
 int test_count = 1;
 
 //Regex Tests
-void DirectTest();
-void EscapedTest();
-void BracketTest();
-void QualifierTest();
-void GroupTest();
-void OrTest();
+bool DirectTest();
+bool EscapedTest();
+bool BracketTest();
+bool QualifierTest();
+bool GroupTest();
+bool OrTest();
 
 //Lexic Whole Tests
 bool VocabularyMakeTests();
@@ -18,22 +18,22 @@ bool TokenNameStreamTests();
 int main(void) {
 	printf("[!] Testing Lexic\n");
 
-	DirectTest();
+	if (!DirectTest()) return 1;
 	test_count = 1;
 
-	EscapedTest();
+	if (!EscapedTest()) return 1;
 	test_count = 1;
 
-	BracketTest();
+	if (!BracketTest()) return 1;
 	test_count = 1;
 
-	QualifierTest();
+	if (!QualifierTest()) return 1;
 	test_count = 1;
 
-	GroupTest();
+	if (!GroupTest()) return 1;
 	test_count = 1;
 
-	OrTest();
+	if (!OrTest()) return 1;
 	test_count = 1;
 
 	bool succ = VocabularyMakeTests();

@@ -1,7 +1,8 @@
 #define TEST_NAME "Escaped"
 #include "regex_helper.h"
 
-void EscapedTest() {
+bool EscapedTest() {
+	int total = 0;
 #ifdef VERBOSE
 	printf("[!] Regex Escaped Test Start\n");
 #endif
@@ -10,24 +11,25 @@ void EscapedTest() {
 	char ws[3] = "\\s";
 	char nws[3] = "\\S";
 
-	TEST_REGEX(nl, "\n", true);
-	TEST_REGEX(nl, "a", false);
+	total += TEST_REGEX(nl, "\n", true);
+	total += TEST_REGEX(nl, "a", false);
 
-	TEST_REGEX(ws, " ", true);
-	TEST_REGEX(ws, "\t", true);
-	TEST_REGEX(ws, "a", false);
-	TEST_REGEX(ws, "A", false);
-	TEST_REGEX(ws, "9", false);
+	total += TEST_REGEX(ws, " ", true);
+	total += TEST_REGEX(ws, "\t", true);
+	total += TEST_REGEX(ws, "a", false);
+	total += TEST_REGEX(ws, "A", false);
+	total += TEST_REGEX(ws, "9", false);
 
-	TEST_REGEX(nws, "a", true);
-	TEST_REGEX(nws, "A", true);
-	TEST_REGEX(nws, "0", true);
-	TEST_REGEX(nws, "\t", false);
-	TEST_REGEX(nws, " ", false);
+	total += TEST_REGEX(nws, "a", true);
+	total += TEST_REGEX(nws, "A", true);
+	total += TEST_REGEX(nws, "0", true);
+	total += TEST_REGEX(nws, "\t", false);
+	total += TEST_REGEX(nws, " ", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Escaped Test Finished\n");
 #endif
+	return total == (test_count-1);
 }
 
 #ifndef ALL_TESTS

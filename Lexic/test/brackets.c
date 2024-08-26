@@ -1,8 +1,8 @@
 #define TEST_NAME "Brackets"
 #include "regex_helper.h"
 
-void BracketTest() {
-
+bool BracketTest() {
+	int total = 0;
 #ifdef VERBOSE
 	printf("[!] Regex Bracket Test Start\n");
 #endif
@@ -11,38 +11,39 @@ void BracketTest() {
 	char seq[] = "[a-zA-Z_]";
 
 	//Single characters
-	TEST_REGEX(list, "a", true);
-	TEST_REGEX(list, "b", true);
-	TEST_REGEX(list, "c", true);
-	TEST_REGEX(list, "ad", false);
-	TEST_REGEX(list, "bd", false);
-	TEST_REGEX(list, "cd", false);
+	total += TEST_REGEX(list, "a", true);
+	total += TEST_REGEX(list, "b", true);
+	total += TEST_REGEX(list, "c", true);
+	total += TEST_REGEX(list, "ad", false);
+	total += TEST_REGEX(list, "bd", false);
+	total += TEST_REGEX(list, "cd", false);
 
 	//Sequences
-	TEST_REGEX(seq, "_", true);
+	total += TEST_REGEX(seq, "_", true);
 	char send[2] = "a";
 	for (int i = (int)'a'; i <= (int)'z'; i++) {
 		send[0] = (char)i;
-		TEST_REGEX(seq, send, true); 
+		total += TEST_REGEX(seq, send, true); 
 	}
 
 	send[0] = 'A';
 	for (int i = (int)'A'; i <= (int)'Z'; i++) {
 		send[0] = (char)i;
-		TEST_REGEX(seq, send, true);
+		total += TEST_REGEX(seq, send, true);
 	}
 	
-	TEST_REGEX(seq, "9", false);
-	TEST_REGEX(seq, "2", false); //*/
+	total += TEST_REGEX(seq, "9", false);
+	total += TEST_REGEX(seq, "2", false); //*/
 	
-	TEST_REGEX("a[bc]", "ac", true);
-	TEST_REGEX("a[bc]", "ab", true);
-	TEST_REGEX("a[bc]", "b", false);
-	TEST_REGEX("a[bc]", "ad", false);
+	total += TEST_REGEX("a[bc]", "ac", true);
+	total += TEST_REGEX("a[bc]", "ab", true);
+	total += TEST_REGEX("a[bc]", "b", false);
+	total += TEST_REGEX("a[bc]", "ad", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Bracket Test Finished\n");
 #endif
+	return total == (test_count-1);
 }
 
 #ifndef ALL_TESTS

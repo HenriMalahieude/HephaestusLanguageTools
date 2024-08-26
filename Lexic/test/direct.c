@@ -1,7 +1,8 @@
 #define TEST_NAME "Direct"
 #include "regex_helper.h"
 
-void DirectTest() {
+bool DirectTest() {
+	int total = 0;
 #ifdef VERBOSE
 	printf("[!] Regex Direct Test Start\n");
 #endif
@@ -11,22 +12,17 @@ void DirectTest() {
 	printf("[.] Initialized Direct Regex\n");
 #endif
 
-
-	TEST_REGEX(match, "", false);
-	
-	TEST_REGEX(match, "i", false);
-	
-	TEST_REGEX(match, "in", false);
-
-	TEST_REGEX(match, "int", true);
-	
-	TEST_REGEX(match, "integer", false);
-
-	TEST_REGEX(match, "double", false);
+	total += TEST_REGEX(match, "", false);
+	total += TEST_REGEX(match, "i", false);
+	total += TEST_REGEX(match, "in", false);
+	total += TEST_REGEX(match, "int", true);
+	total += TEST_REGEX(match, "integer", false);
+	total += TEST_REGEX(match, "double", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Direct Test Finished\n");
 #endif
+	return total == (test_count-1);
 }
 
 #ifndef ALL_TESTS
@@ -37,7 +33,6 @@ int test_count = 1;
 
 int main(void) {
 	//warn_level = LWT_DEBUG;
-	DirectTest();
-	return 0;
+	return !DirectTest();
 }
 #endif

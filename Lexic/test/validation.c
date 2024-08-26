@@ -2,7 +2,7 @@
 
 #include "../private/regex.h"
 
-void TEST_VALIDATE(char *rgx, bool result_to) {
+bool TEST_VALIDATE(char *rgx, bool result_to) {
 	bool val = (RegexValidate(rgx) == result_to);
 
 #ifndef VERBOSE
@@ -14,25 +14,27 @@ void TEST_VALIDATE(char *rgx, bool result_to) {
 #endif
 }
 
-void ValidationTest() {
+bool ValidationTest() {
+	int total = 0;
 #ifdef VERBOSE
 	printf("[!] Regex Validation Test Start\n");
 #endif
-	TEST_VALIDATE("-?[0-9]+(\\.[0-9]+)?", true);
-	TEST_VALIDATE("?", false);
-	TEST_VALIDATE("a*?", false);
-	TEST_VALIDATE("[]]", false);
-	TEST_VALIDATE("[[]", false);
-	TEST_VALIDATE("(()", false);
-	TEST_VALIDATE("())", false);
-	TEST_VALIDATE("|", false);
-	TEST_VALIDATE("abc|(|)", false);
-	TEST_VALIDATE("abc|*", false);
-	TEST_VALIDATE("abc|", false);
+	total += TEST_VALIDATE("-?[0-9]+(\\.[0-9]+)?", true);
+	total += TEST_VALIDATE("?", false);
+	total += TEST_VALIDATE("a*?", false);
+	total += TEST_VALIDATE("[]]", false);
+	total += TEST_VALIDATE("[[]", false);
+	total += TEST_VALIDATE("(()", false);
+	total += TEST_VALIDATE("())", false);
+	total += TEST_VALIDATE("|", false);
+	total += TEST_VALIDATE("abc|(|)", false);
+	total += TEST_VALIDATE("abc|*", false);
+	total += TEST_VALIDATE("abc|", false);
 
 #ifdef VERBOSE
 	printf("[!] Regex Validation Test Finished\n");
 #endif
+	return total == 0;
 }
 
 #ifndef ALL_TESTS

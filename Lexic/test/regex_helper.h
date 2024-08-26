@@ -18,7 +18,8 @@ static bool TEST_REGEX(char *rgx, char *str, bool resolve_to){
 	bool val = (RegexMatch(rgx, str) == resolve_to);
 	
 #ifndef VERBOSE
-	if (!val) printf("[X] %s Test %d (%s) Fail w/ %s\n", TEST_NAME, test_count++, rgx, str);
+	if (!val) printf("[X] %s Test %d (%s) Fail w/ %s\n", TEST_NAME, test_count, rgx, str);
+	test_count++;
 #else
 	printf("[?] Regex %s Test %d Result: ", TEST_NAME, test_count++);
 	if (!val) printf("[X] w/ '%s' -> '%s'\n", rgx, str);
