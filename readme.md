@@ -1,4 +1,4 @@
-## Hephaestus Language Tools
+## Hephaestus Language Tools ![HLT Testing Status](https://github.com/HenriMalahieude/HephaestusLanguageTools/actions/workflows/makefile.yml/badge.svg)
 This is both an exploration of compilation through the C Programming Language, as well as an attempt to make a simple interface for making programming languages.
 
 I've used Lexer, Yacc, and Bison to do some Language Definitions but I find it... annoyingly complex.
