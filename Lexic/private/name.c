@@ -3,14 +3,14 @@
 
 #include "../lexic.h"
 #include "lexic_internal.h"
-#include "warn.h"
+#include "../../helpers/log/warn.h"
+#include "../../helpers/string/handy.h"
 #include "regex.h"
 
-char * ftostr(char *file_name);
 
 char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
-	if (file_name == NULL || file_name[0] == '\0') LexicError("Name Stream File. Given empty file_name?");
-	if (vocab == NULL) LexicError("Name Stream File. Given NULL Vocab?");
+	if (file_name == NULL || file_name[0] == '\0') HLTError("Name Stream File. Given empty file_name?", regex_line_no, regex_colu_no);
+	if (vocab == NULL) HLTError("Name Stream File. Given NULL Vocab?", regex_line_no, regex_colu_no);
 
 	char *strm = ftostr(file_name);
 
@@ -22,7 +22,7 @@ char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
 
 char ** LexicTokenNamesFromString(char *stream, LexicVocabulary *vocab) {
 	if (stream == NULL || stream[0] == '\0') return NULL;
-	if (vocab == NULL) LexicError("Name Stream String. Given NULL Vocab?");
+	if (vocab == NULL) HLTError("Name Stream String. Given NULL Vocab?", regex_line_no, regex_colu_no);
 
 	struct lxc_token *tstrm = LexicTokensFromString(stream, vocab);
 	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') return NULL;

@@ -38,13 +38,13 @@ bool ValidationTest() {
 }
 
 #ifndef ALL_TESTS
-#include "../private/warn.h"
+#include "../../helpers/log/warn.h"
 
 int regex_line_no = 0;
 int regex_colu_no = 0;
 
 int main(void) {
-	warn_level = LWT_SILENT;
+	warn_level = HLT_SILENT;
 	ValidationTest();
 	return 0;
 }

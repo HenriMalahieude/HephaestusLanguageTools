@@ -2,7 +2,7 @@
 
 #include "lexic_internal.h"
 #include "regex.h"
-#include "warn.h"
+#include "../../helpers/log/warn.h"
 
 //Takes control of regex_colu_no
 bool RegexValidate(char *reg) {
@@ -15,10 +15,10 @@ bool RegexValidate(char *reg) {
 
 		if (cur == '|') { //or mode
 			if (i == 0 || prv == '|' || prv == '(' || nxt == '\0') {
-				LexicWarn("Validate. This lexical analyzer does not support empty/0-length or expressions.", LWT_MJRWRN);
+				HLTWarn("Validate. This lexical analyzer does not support empty/0-length or expressions.", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			} else if (prv == '*' || prv == '?') {
-				LexicWarn("Validate. This or statement may never evaluate due to '*' or '?' qualifier.", LWT_STDWRN);
+				HLTWarn("Validate. This or statement may never evaluate due to '*' or '?' qualifier.", regex_line_no, regex_colu_no, HLT_STDWRN);
 			}
 		}
 
@@ -26,19 +26,19 @@ bool RegexValidate(char *reg) {
 		if (cur == '[' && prv != '\\') { 
 			bracket_count++; 
 			if (bracket_count > 1) {
-				LexicWarn("Validate. This lexical analyzer does not support nested brackets. Did you mean '\\['?", LWT_MJRWRN);
+				HLTWarn("Validate. This lexical analyzer does not support nested brackets. Did you mean '\\['?", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 		} else if (cur == ']' && prv != '\\') {
 			if (prv == '[') {
-				LexicWarn("Validate. This lexical analyzer does not support empty/0-length expressions. Like '[]'.", LWT_MJRWRN);
+				HLTWarn("Validate. This lexical analyzer does not support empty/0-length expressions. Like '[]'.", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 		
 			bracket_count--;
 			
 			if (bracket_count < 0) {
-				LexicWarn("Validate. Regex did not properly begin a brackets expression. Missing Left Bracket '['!", LWT_MJRWRN);
+				HLTWarn("Validate. Regex did not properly begin a brackets expression. Missing Left Bracket '['!", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 		}
@@ -47,48 +47,48 @@ bool RegexValidate(char *reg) {
 			paren_count++;
 		} else if (cur == ')' && prv != '\\') {
 			if (prv == '(') {
-				LexicWarn("Validate. This lexical analyzer does not support empty/0-length expressions. Like '()'.", LWT_MJRWRN);
+				HLTWarn("Validate. This lexical analyzer does not support empty/0-length expressions. Like '()'.", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 
 			paren_count--;
 
 			if (paren_count < 0) {
-				LexicWarn("Validate. Regex did not properly begin a group structure. Missing Left Parenthesis '('!", LWT_MJRWRN);
+				HLTWarn("Validate. Regex did not properly begin a group structure. Missing Left Parenthesis '('!", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 		}
 
 		if (prv != '\\' && (cur == '*' || cur == '?' || cur == '+')) {
 			if (i == 0) {
-				LexicWarn("Validate. Cannot qualify empty/0-length string.", LWT_MJRWRN);
+				HLTWarn("Validate. Cannot qualify empty/0-length string.", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 
 			if (prv == '*' || prv == '?' || prv == '+') {
-				LexicWarn("Validate. This lexical analyzer does not support qualified qualifiers.", LWT_MJRWRN);
+				HLTWarn("Validate. This lexical analyzer does not support qualified qualifiers.", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 			
 			if (prv == '|') {
-				LexicWarn("Validate. Cannot qualify empty/0-length string (on or).", LWT_MJRWRN);
+				HLTWarn("Validate. Cannot qualify empty/0-length string (on or).", regex_line_no, regex_colu_no, HLT_MJRWRN);
 				return false;
 			}
 		}
 
 		if (bracket_count > 0 && cur == '-') {
-			if ((int)prv > (int)nxt) LexicWarn("Validate. Note that this sequence within brackets will exclude range specified.", LWT_VERBSE);
-			else if (prv == nxt) LexicWarn("Validate. Sequence within brackets has no range.", LWT_STDWRN);
+			if ((int)prv > (int)nxt) HLTWarn("Validate. Note that this sequence within brackets will exclude range specified.", regex_line_no, regex_colu_no, HLT_VERBSE);
+			else if (prv == nxt) HLTWarn("Validate. Sequence within brackets has no range.", regex_line_no, regex_colu_no, HLT_STDWRN);
 		}
 		regex_colu_no++;
 	}
 
 	if (paren_count != 0) {
-		LexicWarn("Validate. Regex did not properly end a group structure. Missing Right Parenthesis ')'!", LWT_MJRWRN);
+		HLTWarn("Validate. Regex did not properly end a group structure. Missing Right Parenthesis ')'!", regex_line_no, regex_colu_no, HLT_MJRWRN);
 		return false;
 	}
 	if (bracket_count > 0) {
-		LexicWarn("Validate. Regex did not properly end a brackets expression. Missing Right Bracket ']'!", LWT_MJRWRN);
+		HLTWarn("Validate. Regex did not properly end a brackets expression. Missing Right Bracket ']'!", regex_line_no, regex_colu_no, HLT_MJRWRN);
 		return false;
 	}
 

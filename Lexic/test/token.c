@@ -3,7 +3,6 @@
 
 #include "../lexic.h"
 #include "../private/lexic_internal.h"
-#include "../private/warn.h"
 
 #ifndef ALL_TESTS
 int test_count = 1;
@@ -145,7 +144,6 @@ bool TokenStreamTest() {
 
 #ifndef ALL_TESTS
 int main(void) {
-	//////////////////warn_level = LWT_DEBUG;
 	TokenStreamTest();
 	return 0;
 }

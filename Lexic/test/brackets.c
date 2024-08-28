@@ -53,7 +53,7 @@ int regex_colu_no = 0;
 int test_count = 1;
 
 int main(void) {
-	warn_level = LWT_STDWRN;
+	//warn_level = HLT_STDWRN;
 	BracketTest();
 	return 0;
 }

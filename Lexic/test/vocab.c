@@ -3,7 +3,6 @@
 
 #include "../lexic.h"
 #include "../private/lexic_internal.h"
-#include "../private/warn.h"
 
 #ifndef ALL_TESTS
 int test_count = 1;
@@ -72,7 +71,6 @@ bool VocabularyMakeTests(){
 
 #ifndef ALL_TESTS
 int main(void) {
-	//warn_level = LWT_DEBUG;
 	VocabularyMakeTests();
 	return 0;
 }

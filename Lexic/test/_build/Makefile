@@ -3,25 +3,25 @@ FLAGS = -Wall -Wextra -g
 
 #Ordered in how foundational it is
 
-all: warn.o match.o validate.o vocab.o file_to_str.o
+all: warn.o match.o validate.o vocab.o file_to_str.o trim.o
 	@echo 'Lexic Comprehensive Test'
 	@$(CC) ../all_test.c ../name.c ../vocab.c ../token.c \
 		../group.c ../qualifier.c ../escaped.c ../brackets.c ../or.c ../direct.c \
 		../../private/name.c ../../private/token.c \
-		warn.o match.o validate.o vocab.o file_to_str.o \
+		warn.o match.o validate.o vocab.o file_to_str.o trim.o \
 		-D ALL_TESTS -o test_all $(FLAGS)
 
-lxc_name: warn.o match.o validate.o vocab.o file_to_str.o
+lxc_name: warn.o match.o validate.o vocab.o file_to_str.o trim.o
 	@echo 'Token Name Stream Tests'
-	@$(CC) ../name.c ../../private/name.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_name $(FLAGS)
+	@$(CC) ../name.c ../../private/name.c ../../private/token.c vocab.o warn.o match.o validate.o trim.o file_to_str.o -D VERBOSE -o test_token_name $(FLAGS)
 
-lxc_token: warn.o match.o validate.o vocab.o file_to_str.o
+lxc_token: warn.o match.o validate.o vocab.o file_to_str.o trim.o
 	@echo 'Token Stream Tests'
-	@$(CC) ../token.c ../../private/token.c vocab.o warn.o match.o validate.o file_to_str.o -D VERBOSE -o test_token_stream $(FLAGS)
+	@$(CC) ../token.c ../../private/token.c vocab.o warn.o match.o validate.o trim.o file_to_str.o -D VERBOSE -o test_token_stream $(FLAGS)
 
-lxc_vocab: vocab.o warn.o validate.o file_to_str.o
+lxc_vocab: vocab.o warn.o validate.o file_to_str.o trim.o
 	@echo 'Vocab Make Tests'
-	@$(CC) ../vocab.c vocab.o warn.o validate.o file_to_str.o -D VERBOSE -o test_vocab_make $(FLAGS)
+	@$(CC) ../vocab.c vocab.o warn.o validate.o file_to_str.o trim.o -D VERBOSE -o test_vocab_make $(FLAGS)
 
 rgx_all: match.o warn.o
 	@echo 'All Regex Tests'
@@ -55,9 +55,13 @@ rgx_validate: validate.o warn.o
 	@echo 'Regex Validation Test'
 	@$(CC) ../validation.c validate.o warn.o -D VERBOSE -o test_regex_validation $(FLAGS)
 
-file_to_str.o: ../../private/file_to_str.c
+trim.o: ../../../helpers/string/handy.h ../../../helpers/string/trim.c
+	@echo 'trim.o'
+	@$(CC) ../../../helpers/string/trim.c -c $(FLAGS)
+
+file_to_str.o: ../../../helpers/string/handy.h ../../../helpers/string/file_to_str.c
 	@echo 'file_to_str.o'
-	@$(CC) ../../private/file_to_str.c -c $(FLAGS)
+	@$(CC) ../../../helpers/string/file_to_str.c -c $(FLAGS)
 
 vocab.o: ../../lexic.h ../../private/lexic_internal.h ../../private/vocab.c
 	@echo 'vocab.c -> .o'
@@ -71,9 +75,9 @@ validate.o: ../../lexic.h ../../private/regex.h ../../private/validate.c
 	@echo 'validate.c -> .o'
 	@$(CC) ../../private/validate.c -c $(FLAGS)
 
-warn.o: ../../lexic.h ../../private/warn.c
+warn.o: ../../../helpers/log/warn.h ../../../helpers/log/warn.c
 	@echo 'warn.c -> .o'
-	@$(CC) ../../private/warn.c -c $(FLAGS)
+	@$(CC) ../../../helpers/log/warn.c -c $(FLAGS)
 
 clean:
 	@echo 'Removing all object and executables'

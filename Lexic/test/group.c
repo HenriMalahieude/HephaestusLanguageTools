@@ -47,7 +47,6 @@ int regex_line_no = 0;
 int regex_colu_no = 0;
 int test_count = 1;
 int main(void) {
-	//warn_level = LWT_DEBUG;
 	GroupTest();
 	return 0;
 }

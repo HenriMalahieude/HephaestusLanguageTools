@@ -6,37 +6,11 @@
 #include "../lexic.h"
 #include "lexic_internal.h"
 #include "regex.h"
-#include "warn.h"
-
-char * ftostr(char *file_name);
+#include "../../helpers/log/warn.h"
+#include "../../helpers/string/handy.h"
 
 int regex_line_no = 0; //arbitrary location
 int regex_colu_no = 0;
-
-//allocates a new string which is expected to be freed by caller
-//returns if was able to make a non-empty string
-bool trim(char *input, char **nstr) {
-	int ilen = strlen(input);
-	int front = 0;
-	
-	for (front = 0; front < ilen; front++) {
-		if (!isspace(input[front])) break;
-	}
-
-	if (front >= ilen) return false;
-
-	int back = front;
-	for (back = front; back < ilen; back++) {
-		if (isspace(input[back+1])) break;
-	}
-	
-	int len = (back - front) + 1;
-	if (len <= 0) return false;
-
-	*nstr = calloc(len+1, sizeof(char));
-	strncpy(*nstr, input+front, len);
-	return true;
-}
 
 void add_def(struct lxc_vocabulary *dict, struct lxc_definition def) {
 	dict->def_count++;
@@ -54,9 +28,9 @@ LexicVocabulary * LexicVocabularyAllocate() {
 }
 
 bool LexicVocabularyDefinitionAdd(LexicVocabulary *vocab, char *nme, char *rgx) {
-	if (vocab == NULL) LexicError("Vocab Add Def. Given NULL Vocab?");
-	if (nme == NULL || nme[0] == '\0') LexicError("Vocab Add Def. Given empty name?");
-	if (rgx == NULL || rgx[0] == '\0') LexicError("Vocab Add Def. Given empty regex?");
+	if (vocab == NULL) HLTError("Vocab Add Def. Given NULL Vocab?", regex_line_no, regex_colu_no);
+	if (nme == NULL || nme[0] == '\0') HLTError("Vocab Add Def. Given empty name?", regex_line_no, regex_colu_no);
+	if (rgx == NULL || rgx[0] == '\0') HLTError("Vocab Add Def. Given empty regex?", regex_line_no, regex_colu_no);
 
 	if (!RegexValidate(rgx)) return false;
 
@@ -76,14 +50,14 @@ void LexicVocabularyFree(LexicVocabulary *vocab) {
 		free(thing.name); thing.name = NULL;
 		free(thing.regex); thing.regex = NULL;
 	}
-
-	vocab->definitions = NULL;
+	
+	free(vocab->definitions); vocab->definitions = NULL;
 	vocab->def_count = 0;
 	free(vocab);
 }
 
 LexicVocabulary * LexicVocabularyFromFile(char *file_name) {
-	if (file_name == NULL || file_name[0] == '\0') LexicError("Vocab Make File. Given empty file name?");
+	if (file_name == NULL || file_name[0] == '\0') HLTError("Vocab Make File. Given empty file name?", regex_line_no, regex_colu_no);
 
 	if (strlen(file_name) <= 0) return NULL;
 
@@ -107,32 +81,32 @@ LexicVocabulary * LexicVocabularyFromString(char *stream) {
 	int slen = strlen(stream);
 	for (int i = 0; i < slen; i++) {
 		if (stream[i] == ':') { //acquire the name
-			LexicWarn("Vocab Make String. Found Name.", LWT_DEBUG);
+			HLTWarn("Vocab Make String. Found Name.", regex_line_no, regex_colu_no, HLT_DEBUG);
 
 			int sublen = (i-1) - nconsumed_ind + 1;
-			if (sublen <= 0) LexicError("Empty Token Name.");
-			if (sublen >= 100) LexicError("Lexic does not support names longer than 99 characters!");
+			if (sublen <= 0) HLTError("Empty Token Name.", regex_line_no, regex_colu_no);
+			if (sublen >= 100) HLTError("Lexic does not support names longer than 99 characters!", regex_line_no, regex_colu_no);
 
 			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
-			if (!trim(substr, &nme)) LexicError("Empty Token Name.");
+			if (!trim(substr, &nme)) HLTError("Empty Token Name.", regex_line_no, regex_colu_no);
 			nconsumed_ind = i+1;
 
-			if (warn_level == LWT_DEBUG) printf("name found: %s\n", nme);	
+			if (warn_level == HLT_DEBUG) printf("name found: %s\n", nme);	
 		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
-			LexicWarn("Vocab Make String. Found Definition.", LWT_DEBUG);
+			HLTWarn("Vocab Make String. Found Definition.", regex_line_no, regex_colu_no, HLT_DEBUG);
 
 			if (nme == NULL) continue; //means it was an empty line
 
 			int sublen = (i-1) - nconsumed_ind + 1;	
 			if (i >= slen-1) sublen++;
-			if (sublen <= 0) LexicError("Empty Token Definition.");
-			if (sublen >= 100) LexicError("Lexic does not support definitions longer than 99 characters!");
+			if (sublen <= 0) HLTError("Empty Token Definition.", regex_line_no, regex_colu_no);
+			if (sublen >= 100) HLTError("Lexic does not support definitions longer than 99 characters!", regex_line_no, regex_colu_no);
 			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
 			struct lxc_definition dd = {.name = nme, .regex = NULL};
-			if (!trim(substr, &dd.regex)) LexicError("Empty Token Definition.");
-			if (!RegexValidate(dd.regex)) LexicError("Could not create Token Dictionary.");
+			if (!trim(substr, &dd.regex)) HLTError("Empty Token Definition.", regex_line_no, regex_colu_no);
+			if (!RegexValidate(dd.regex)) HLTError("Could not create Token Dictionary.", regex_line_no, regex_colu_no);
 			add_def(&dictionary, dd);
 			
 			nme = NULL;
