@@ -3,11 +3,11 @@
 #include "../../helpers/string/handy.h"
 
 SyntacTreeNode * SyntacTreeFromTokens(LexicToken *stream, Syntac *book) {
-	//TODO
+	//TODO: Also depending on the book type
 }
 
 SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
-	//TODO
+	//TODO: Depending on the book type
 }
 
 void SyntacTreeFree(SyntacTreeNode *tree) {

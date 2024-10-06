@@ -12,8 +12,8 @@ typedef struct stc_book SyntacBook;
 typedef enum stc_parsing_style {
 	STC_LL0 = 0, 	//Top-Down
 	STC_LL1, 	//Top-Down  w/ Lookahead
-	STC_SLR, 	//Bottom-Up
-	STC_LALR, 	//Bottom-Up w/ Lookahead
+	STC_LR0, 	//Bottom-Up
+	STC_LR1, 	//Bottom-Up w/ Lookahead
 } SyntacTreeType;
 
 typedef struct stc_tree_node {
@@ -29,11 +29,14 @@ typedef struct stc_tree_node {
 /*----------------------------Books----------------------------*/
 
 //Allocate and Populate a rule book from a file
-//Will verify the grammar rules correctness
-SyntacBook * SyntacBookFromFile(char *file_name, SyntacTreeType type);
+//Parse type must be on first line of file
+SyntacBook * SyntacBookFromFile(char *file_name);
 
 //Allocate and Populate a rule book from a string stream
 SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type);
+
+//Validate grammar book can be built into table
+bool SyntacBookValidate(SyntacBook *);
 
 //Allocate an empty rule book
 SyntacBook * SyntacBookAllocate();
