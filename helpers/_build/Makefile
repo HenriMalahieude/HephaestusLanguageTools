@@ -7,16 +7,24 @@ DYNAMI_OUTDIR ?= ./dynamic
 
 SRC_LOC := ..
 
-HEADERS := $(shell find $(SRC_LOC) -name '*.h')
+#Get all source files in source
 SOURCES := $(shell find $(SRC_LOC) -name '*.c')
-#HLP_DIRS := $(foreach t, $(shell ls -d $(SRC_LOC)/*/),$(if $(findstring _build,$t),,$t))
-#HLP_DIRS := $(addsuffix /, $(basename $(subst .,,$(subst /,,$(dir $(HLP_DIRS))))))
 
-OBJECTS := $(notdir $(SOURCES:.c=.o)) #$(addsuffix .o, $(notdir $(basename $(SOURCES))))
+#Get all different helper types
+HLP_DIRS := $(foreach t, $(shell ls -d $(SRC_LOC)/*/),$(if $(findstring _build,$t),,$t))
+HLP_DIRS := $(addsuffix /, $(basename $(subst .,,$(subst /,,$(dir $(HLP_DIRS))))))
 
+#Macro for creating all file locations needed
+ALL_DIRS := $(DYNAMI_OUTDIR) $(STATIC_OUTDIR) $(addprefix $(DYNAMI_OUTDIR)/,$(HLP_DIRS)) $(addprefix $(STATIC_OUTDIR)/,$(HLP_DIRS))
+
+#Only the .o
+OBJECTS := $(notdir $(SOURCES:.c=.o))
+
+#From "../parent/source.c" to "parent/source.o" for building
 PARENTS := $(addsuffix /, $(basename $(subst .,,$(subst /,,$(dir $(SOURCES))))))
 TARGETS := $(join $(PARENTS), $(OBJECTS))
 
+#Formatting for output to dynamic or static location
 DYN_OBJS := $(addprefix $(DYNAMI_OUTDIR)/, $(TARGETS)) #$(foreach t,$(TARGETS),$(DYNAMI_OUTDIR)/t)
 STT_OBJS := $(addprefix $(STATIC_OUTDIR)/, $(TARGETS)) #$(foreach t,$(TARGETS),$(STATIC_OUTDIR)/t)
 
@@ -25,22 +33,19 @@ TAB := $(NULL)    $(NULL)
 
 .PHONY: all clean
 
-all: $(STATIC_OUTDIR) $(DYNAMI_OUTDIR) $(DYN_OBJS) $(STT_OBJS) 
+all: $(ALL_DIRS) $(DYN_OBJS) $(STT_OBJS) 
 	
-
-$(DYNAMI_OUTDIR)/%.o: $(SRC_LOC)/%.c $(HEADERS)
+.SECONDEXPANSION:
+$(DYNAMI_OUTDIR)/%.o: $(SRC_LOC)/%.c $(SRC_LOC)/$$(subst /,,$$(dir %))/*.h
 	$(info [d]$(TAB)$<)
-	@$(CC) $< -c -o $(DYNAMI_OUTDIR)/$(basename $(notdir $@)).o $(BFLAGS) $(DY_FLAGS)
+	@$(CC) $< -c -o $@ $(BFLAGS) $(DY_FLAGS)
 
-$(STATIC_OUTDIR)/%.o: $(SRC_LOC)/%.c $(HEADERS)
+$(STATIC_OUTDIR)/%.o: $(SRC_LOC)/%.c $$(SRC_LOC)/$$(subst /,,$$(dir %))/*.h
 	$(info [s]$(TAB)$<)
-	@$(CC) $< -c -o $(STATIC_OUTDIR)/$(basename $(notdir $@)).o $(BFLAGS)
+	@$(CC) $< -c -o $@ $(BFLAGS)
 
-$(DYNAMI_OUTDIR):
-	mkdir $@
-
-$(STATIC_OUTDIR):
-	mkdir $@
+$(ALL_DIRS):
+	@mkdir -p $@
 
 clean:
 	-rm -rf $(DYNAMI_OUTDIR)
