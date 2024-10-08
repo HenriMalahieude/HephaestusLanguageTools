@@ -4,14 +4,15 @@ DY_FLAGS = -fPIC
 
 OUTDIR ?= .
 SRC_LOC ?= ..
-STATIC_OUTDIR ?= $(OUTDIR)/static
-DYNAMI_OUTDIR ?= $(OUTDIR)/dynamic
+STATIC_OUTDIR ?= $(OUTDIR)/object
+DYNAMI_OUTDIR ?= $(OUTDIR)/shared
 
 #NOTE: NEEDS UNIQUE .c FILE NAMES
 SPACE := $(subst ,, )
 VPATH := $(subst $(SPACE),:,$(shell ls -d $(SRC_LOC)/*/))
 
 #Get all source files in source, and get objects
+HEADERS := $(shell find $(SRC_LOC) -name '*.h')
 SOURCES := $(shell find $(SRC_LOC) -name '*.c')
 OBJECTS := $(addsuffix .o, $(notdir $(basename $(SOURCES))))
 
@@ -28,19 +29,22 @@ TAB := $(NULL)    $(NULL)
 MAKEFLAGS += --no-builtin-rules
 .PHONY: all clean
 
-all: $(ALL_OUTDIRS) $(DYN_OBJS) $(STT_OBJS) 
-	$(info Done)
+all: dynamic static
+	
+dynamic: $(DYNAMI_OUTDIR) $(DYN_OBJS)
 
-$(DYNAMI_OUTDIR)/%.o: %.c
-	$(info [d]$(TAB)$<)
+static: $(STATIC_OUTDIR) $(STT_OBJS)
+
+$(DYNAMI_OUTDIR)/%.o: %.c $(HEADERS)
+	$(info [h]$(TAB)$@)
 	@$(CC) $< -c -o $@ $(BFLAGS) $(DY_FLAGS)
 
-$(STATIC_OUTDIR)/%.o: %.c 
-	$(info [s]$(TAB)$<)
+$(STATIC_OUTDIR)/%.o: %.c $(HEADERS)
+	$(info [h]$(TAB)$@)
 	@$(CC) $< -c -o $@ $(BFLAGS)
 
-$(ALL_OUTDIRS):
-	mkdir -p $@
+$(DYNAMI_OUTDIR) $(STATIC_OUTDIR):
+	@mkdir -p $@
 
 clean:
 	-rm -rf $(DYNAMI_OUTDIR)
