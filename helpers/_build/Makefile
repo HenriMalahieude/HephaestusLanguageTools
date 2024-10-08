@@ -2,50 +2,45 @@ CC = gcc
 BFLAGS = -Wall
 DY_FLAGS = -fPIC
 
-STATIC_OUTDIR ?= ./static
-DYNAMI_OUTDIR ?= ./dynamic
+OUTDIR ?= .
+SRC_LOC ?= ..
+STATIC_OUTDIR ?= $(OUTDIR)/static
+DYNAMI_OUTDIR ?= $(OUTDIR)/dynamic
 
-SRC_LOC := ..
+#NOTE: NEEDS UNIQUE .c FILE NAMES
+SPACE := $(subst ,, )
+VPATH := $(subst $(SPACE),:,$(shell ls -d $(SRC_LOC)/*/))
 
-#Get all source files in source
+#Get all source files in source, and get objects
 SOURCES := $(shell find $(SRC_LOC) -name '*.c')
-
-#Get all different helper types
-HLP_DIRS := $(foreach t, $(shell ls -d $(SRC_LOC)/*/),$(if $(findstring _build,$t),,$t))
-HLP_DIRS := $(addsuffix /, $(basename $(subst .,,$(subst /,,$(dir $(HLP_DIRS))))))
+OBJECTS := $(addsuffix .o, $(notdir $(basename $(SOURCES))))
 
 #Macro for creating all file locations needed
-ALL_DIRS := $(DYNAMI_OUTDIR) $(STATIC_OUTDIR) $(addprefix $(DYNAMI_OUTDIR)/,$(HLP_DIRS)) $(addprefix $(STATIC_OUTDIR)/,$(HLP_DIRS))
-
-#Only the .o
-OBJECTS := $(notdir $(SOURCES:.c=.o))
-
-#From "../parent/source.c" to "parent/source.o" for building
-PARENTS := $(addsuffix /, $(basename $(subst .,,$(subst /,,$(dir $(SOURCES))))))
-TARGETS := $(join $(PARENTS), $(OBJECTS))
+ALL_OUTDIRS := $(DYNAMI_OUTDIR) $(STATIC_OUTDIR)
 
 #Formatting for output to dynamic or static location
-DYN_OBJS := $(addprefix $(DYNAMI_OUTDIR)/, $(TARGETS)) #$(foreach t,$(TARGETS),$(DYNAMI_OUTDIR)/t)
-STT_OBJS := $(addprefix $(STATIC_OUTDIR)/, $(TARGETS)) #$(foreach t,$(TARGETS),$(STATIC_OUTDIR)/t)
+DYN_OBJS := $(addprefix $(DYNAMI_OUTDIR)/, $(OBJECTS)) #$(foreach t,$(TARGETS),$(DYNAMI_OUTDIR)/t)
+STT_OBJS := $(addprefix $(STATIC_OUTDIR)/, $(OBJECTS)) #$(foreach t,$(TARGETS),$(STATIC_OUTDIR)/t)
 
 NULL :=
 TAB := $(NULL)    $(NULL)
 
+MAKEFLAGS += --no-builtin-rules
 .PHONY: all clean
 
-all: $(ALL_DIRS) $(DYN_OBJS) $(STT_OBJS) 
-	
-.SECONDEXPANSION:
-$(DYNAMI_OUTDIR)/%.o: $(SRC_LOC)/%.c $(SRC_LOC)/$$(subst /,,$$(dir %))/*.h
+all: $(ALL_OUTDIRS) $(DYN_OBJS) $(STT_OBJS) 
+	$(info Done)
+
+$(DYNAMI_OUTDIR)/%.o: %.c
 	$(info [d]$(TAB)$<)
 	@$(CC) $< -c -o $@ $(BFLAGS) $(DY_FLAGS)
 
-$(STATIC_OUTDIR)/%.o: $(SRC_LOC)/%.c $$(SRC_LOC)/$$(subst /,,$$(dir %))/*.h
+$(STATIC_OUTDIR)/%.o: %.c 
 	$(info [s]$(TAB)$<)
 	@$(CC) $< -c -o $@ $(BFLAGS)
 
-$(ALL_DIRS):
-	@mkdir -p $@
+$(ALL_OUTDIRS):
+	mkdir -p $@
 
 clean:
 	-rm -rf $(DYNAMI_OUTDIR)
