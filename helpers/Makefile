@@ -2,10 +2,10 @@ CC = gcc
 BFLAGS = -Wall
 DY_FLAGS = -fPIC
 
-OUTDIR ?= .
-SRC_LOC ?= ..
-STATIC_OUTDIR ?= $(OUTDIR)/object
-DYNAMI_OUTDIR ?= $(OUTDIR)/shared
+OUTDIR ?= ../_build/Helpers
+SRC_LOC ?= .
+STATIC_OUTDIR := $(OUTDIR)/object
+DYNAMI_OUTDIR := $(OUTDIR)/shared
 
 #NOTE: NEEDS UNIQUE .c FILE NAMES
 SPACE := $(subst ,, )
@@ -25,22 +25,29 @@ STT_OBJS := $(addprefix $(STATIC_OUTDIR)/, $(OBJECTS)) #$(foreach t,$(TARGETS),$
 
 NULL :=
 TAB := $(NULL)    $(NULL)
+define ENDL
+
+
+endef
 
 MAKEFLAGS += --no-builtin-rules
 .PHONY: all clean
 
 all: dynamic static
+	$(info [!!h] Helpers to Objects Complete$(ENDL))
 	
 dynamic: $(DYNAMI_OUTDIR) $(DYN_OBJS)
+	$(info [!dh]$(TAB)Helpers Dynamically Complete)
 
 static: $(STATIC_OUTDIR) $(STT_OBJS)
+	$(info [!dh]$(TAB)Helpers Statically Complete)
 
 $(DYNAMI_OUTDIR)/%.o: %.c $(HEADERS)
-	$(info [h]$(TAB)$@)
+	$(info [.dh]$(TAB)$(TAB)$(notdir $@))
 	@$(CC) $< -c -o $@ $(BFLAGS) $(DY_FLAGS)
 
 $(STATIC_OUTDIR)/%.o: %.c $(HEADERS)
-	$(info [h]$(TAB)$@)
+	$(info [.oh]$(TAB)$(TAB)$(notdir $@))
 	@$(CC) $< -c -o $@ $(BFLAGS)
 
 $(DYNAMI_OUTDIR) $(STATIC_OUTDIR):
