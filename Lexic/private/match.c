@@ -172,7 +172,7 @@ bool RegexMatch(char *reg, char *input) {
 		char cur = reg[ri];
 		char nxt = reg[ri+1]; if (nxt == '\0') nxt = ' ';
 
-		if (warn_level == HLT_DEBUG) printf("i:%lld <= %lld, r:%lld < %lld, '%c%c%c', lgf:%d\n", ii, ilen, ri, rlen, prv, cur, nxt, lst_grp_fail);
+		if (warn_level == HLT_DEBUG) printf("i:%ld <= %ld, r:%ld < %ld, '%c%c%c', lgf:%d\n", ii, ilen, ri, rlen, prv, cur, nxt, lst_grp_fail);
 
 		if (mode == RT_UNDEFINED) {
 			if (cur == '\\') {mode = RT_ESCAPED;}
