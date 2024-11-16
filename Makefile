@@ -14,6 +14,11 @@ DIRS := $(OUT_LXC) $(OUT_SYC) $(OUT_MTC) $(OUT_HLP) $(OUT_LIB)
 .SUFFIXES:
 
 all: $(DIRS) helpers Lexic #Syntac Mantic (unimplemented)
+	@mkdir -p $(OUT_LIB)/shared
+	@mkdir -p $(OUT_LIB)/object
+	$(foreach t,$(shell find -name *.so), @cp $t $(OUT_LIB)/shared/)
+	$(foreach t,$(shell find -name *.a) , @cp $t $(OUT_LIB)/object/)
+	$(info [!!!] Linked libs into $(OUT_LIB))
 
 Lexic: $(OUT_LXC) helpers
 	@$(MAKE) -s -C _build/ NAME=Lexic OUTDIR=$(OUT_LXC) SRC_LOC=$(abspath ./Lexic/private) HLP_LOC=$(HLP_SRC)
