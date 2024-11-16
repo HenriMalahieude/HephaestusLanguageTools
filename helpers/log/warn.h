@@ -9,9 +9,9 @@
 //Internal: Log All
 #define HLT_LOGLOC \
 	HLT_OUTFILE; \
-	printf("("); \
+	printf(" ("); \
 	HLT_OUTFUNC; \
-	printf(")> ")
+	printf(") > ")
 
 //Warn: All
 #define HLT_AWRN(msg, type) {\
@@ -23,7 +23,7 @@
 #define HLT_WRNLC(msg, line, col, type) {\
 	printf(HLT_WRN_SYMB); \
 	HLT_OUTFUNC; \
-	printf("> "); \
+	printf(" > "); \
 	HLTWarn(msg, line, col, type);}
 
 #define HLT_WRN(msg, type) HLT_WRNLC(msg, -1, -1, type)
@@ -32,14 +32,14 @@
 #define HLT_AERR(msg) {\
 	printf(HLT_ERR_SYMB); \
 	HLT_LOGLOC; \
-	HLTError(msg, -1, -1)}
+	HLTError(msg, -1, -1);}
 
 //Error: Function
 #define HLT_ERRLC(msg, line, col) {\
 	printf(HLT_ERR_SYMB); \
 	HLT_OUTFUNC; \
-	printf("> "); \
-	HLTError(msg, line, col)}
+	printf(" > "); \
+	HLTError(msg, line, col);}
 
 #define HLT_ERR(msg) HLT_ERRLC(msg, -1, -1)
 

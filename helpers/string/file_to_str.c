@@ -11,7 +11,7 @@ char* ftostr(char *file_name) {
 
 	int succ = fseek(read_from, 0, SEEK_END); //Move to eof
 	if (succ != 0) {
-		HLT_WRN("Couldn't seek file to the end?", HLT_MJRWRN);
+		HLT_AWRN("Couldn't seek file to the end?", HLT_MJRWRN);
 		return NULL;
 	}
 
@@ -21,7 +21,7 @@ char* ftostr(char *file_name) {
 	char *strm = (char*)calloc(sizeof(char), file_size); 
 	if (strm == NULL) {
 		fclose(read_from);
-		HLT_AWRN("Failed to allocate memory for file?");
+		HLT_AWRN("Failed to allocate memory for file?", HLT_MJRWRN);
 		return NULL;
 	}
 
@@ -29,7 +29,7 @@ char* ftostr(char *file_name) {
 	if (succ <= 1) {
 		fclose(read_from);
 		free(strm);
-		HLT_AWRN("Failed to read entire file into buffer?");
+		HLT_AWRN("Failed to read entire file into buffer?", HLT_MJRWRN);
 		return NULL;
 	}
 	
