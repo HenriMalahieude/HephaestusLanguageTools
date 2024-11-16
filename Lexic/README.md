@@ -7,17 +7,8 @@
 [A Video Example](https://youtu.be/9clwgveTgrs)
 
 #### Linking the Library
-Within Lexic you'll notice the ``_build`` folder, which is where you'll find the two different versions of lexic to build. You may either link it dynamically, or statically. Either way you'll need to first enter your respective choice and then run make (or mingw32-make). Once that's been built you may link it like so:
-```make
-#for static
-gcc main.c -L $(some_path)/Lexic/_build/static/ -I $(some_path)/Lexic/ -l lexic
-
-#for dynamic (no need for -l if I remember? idk i don't really use this)
-gcc main.c -L $(some_path)/Lexic/_build/dynamic/ -I $(some_path)/Lexic/
-```
-
-You're welcome to make the ``_build/dynamic/ folder`` part of your path to make your life easier, but that's on you tbh.
-And, thinking on this... the liblexic.a file is only 28.6 KB. Very small footprint to deal with.
+1. Use the Makefile at the root: `make`
+2. All Libraries may be found within `_build/lib`
 
 #### Using the code
 Lexic first expects you to make a vocabulary which defines your language. However, construction is up to the developer/user:
