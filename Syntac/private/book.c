@@ -7,9 +7,9 @@
 
 //Allocate an Empty Rule Book
 SyntacBook * SyntacBookAllocate() {
-	SyntacBook *book = malloc(sizeof(struct stc_book));
+	SyntacBook *book = (SyntacBook*)malloc(sizeof(struct stc_book));
 
-	if (book == NULL) {HLT_AERR("Attempted malloc of a book failed?");}
+	if (book == NULL) HLT_ERR("Attempted malloc of a book failed?");
 	
 	book->rules = NULL;
 	book->rule_count = 0;
@@ -20,14 +20,14 @@ SyntacBook * SyntacBookAllocate() {
 //Free a rule book (assumes everything within the rulebook and rules is dynamically allocated)
 void SyntacBookFree(SyntacBook *book) {
 	if (book == NULL) {
-		HLT_UWRN("Supplied book pointer was null?", HLT_STDWRN);
+		HLT_WRN("Supplied book pointer was null?", HLT_MJRWRN);
 		return;
 	}
 
 	for (int i = 0; i< book->rule_count; i++){
 		struct stc_rule *rule = &book->rules[i];
 		if (rule == NULL) {
-			HLT_UWRN("Rule pointer was null?", HLT_MJRWRN);
+			HLT_WRN("Rule pointer was null?", HLT_STDWRN);
 			continue;
 		}
 
@@ -45,40 +45,40 @@ void SyntacBookFree(SyntacBook *book) {
 
 void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	if (book == NULL) {
-		HLT_UWRN("Supplied book pointer was null?", HLT_STDWRN);
+		HLT_WRN("Supplied book pointer was null?", HLT_MJRWRN);
 		return;
 	}
 
 	if (left == NULL || left[0] == '\0') {
-		HLT_UWRN("Supplied 'left' of rule was null/empty?", HLT_STDWRN);
+		HLT_WRN("Supplied 'left' of rule was null/empty?", HLT_MJRWRN);
 		return;
 	}
 
 	if (right == NULL || left[0] == '\0') {
-		HLT_UWRN("Supplied 'right' of rule was null/empty?", HLT_STDWRN);
+		HLT_WRN("Supplied 'right' of rule was null/empty?", HLT_MJRWRN);
+		return;
+	}
+
+	//Count Amount of Elements (delimited by ':')
+	int elm_cnt = 0;
+	for (int i = 0; i < strlen(right); i++) if (right[i] == ':') elm_cnt++;
+
+	if (elm_cnt <= 0) {
+		HLT_WRN("Provided rule had no right production?", HLT_MJRWRN);
 		return;
 	}
 
 	//Initialize the rule + name
-	struct stc_rule *rule = malloc(sizeof(struct stc_rule));
-	rule->name = calloc(strlen(left)+1, sizeof(char)); 
-	trim(left, &rule->name);
-
-	//Count Amount of Elements (delimited by space)
-	int elm_cnt = 0; bool lstwasSpace = true;
-	for (int i = 0; i < strlen(right); i++) {
-		if (isspace(right[i])) {
-			if (!lstwasSpace) elm_cnt++;
-			lstwasSpace = true;
-		} else {
-			lstwasSpace = false;
-		}
+	struct stc_rule *rule = (struct stc_rule *)malloc(sizeof(struct stc_rule));
+	rule->name = NULL
+	if (!trim(left, &rule->name)) {
+		HLT_WRN("Empty left consumption for rule?", HLT_MJRWRN);
+		free(rule);
+		return;
 	}
-
-	if (elm_cnt <= 0) {HLT_UERR("Element count of 'right' was <= zero?");}
 	
 	//Allocate amount of elements detected
-	rule->elements = malloc(sizeof(char *) * (elm_cnt+1));
+	rule->elements = (char**)malloc(sizeof(char *) * (elm_cnt+1));
 	rule->elements[elm_cnt] = NULL; //NULL-terminate
 
 	//Parse the elements now
@@ -86,45 +86,62 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	size_t nconsumeIdx = 0;
 	char substr[100];
 	for (int i = 1; i < strlen(right); i++) {
-		if ((isspace(right[i]) || i == strlen(right)-1) && nconsumeIdx != i) {
-			int len = (i - nconsumeIdx);
+		if ((right[i] == ':' || i == strlen(right)-1)) {
+			int len = (i - nconsumeIdx); //non-inclusive
+			if (len-1 <= 0) {
+				HLT_WRN("Empty element inside of rule's right production?", HLT_MJRWRN);
+				continue;
+			}
+
 			strncpy(substr, right + nconsumeIdx, len);
-			substr[len] = 0;
-			trim(substr, &rule->elements[elm_i++]); //calloc a trimmed version of substr
+			substr[len] = '\0';
+			if (!trim(substr, &rule->elements[elm_i])) {
+				HLT_WRN("Element was only whitespace?", HLT_MJRWRN);
+				strcpy(&rule->elements[elm_i], substr);
+			}
+			elm_i += 1;
 		}
 	}
 
 	if (elm_i < elm_cnt) {
-		snprintf(substr, 100, "Element parsing recorded %d, but expected %d?", elm_i, elm_cnt);
-		HLT_UERR(substr);
+		snprintf(substr, 100, "Rule %s expected %d elements, got %d?", left, elm_cnt, elm_i);
+		HLT_WRN(substr, HLT_MJRWRN);
 	}
 
 	//Place into the book
-	book->rules = realloc(book->rules, sizeof(struct stc_rule) * ++(book->rule_count)); //unless you have a better idea...
+	book->rules = (struct stc_rule *)realloc(book->rules, sizeof(struct stc_rule) * ++(book->rule_count)); 
+	//unless you have a better idea, we will be reallocing 1 by 1
 	book->rules[book->rule_count-1] = rule;
 }
 
 SyntacBook * SyntacBookFromFile(char *file_name){
 	if (file_name == NULL || file_name[0] == '\0') {
-		HLTWarn("SyntacBookFromFile. Supplied file_name was null/empty?");
+		HLT_WRN("Supplied file_name was null/empty?", HLT_MJRWRN);
 		return NULL;
 	}
 
 	char *cntnts = ftostr(file_name);
-	if (cntnts == NULL) {HLT_AERR("Could not convert file to string?");}
+	if (cntnts == NULL) {
+		HLT_WRN("Could not convert file to string?", HLT_MJRWRN);
+		return NULL;
+	}
 
 	int nl; //new line location
 	for (nl = 0; cntnts[nl] == '\0' || cntnts[nl] == '\n'; nl++);
+	if (nl == 0) HLT_ERR("File had no content?");
 
 	char substr[100];
 	strncpy(substr, cntnts, nl);
 
 	enum stc_parsing_style type;
-	if (strcmp(substr, "LL0") == 0) 	type = STC_LL0;
-	else if (strcmp(substr, "LL1") == 0) 	type = STC_LL1;
-	else if (strcmp(substr, "LR0") == 0)	type = STC_LR0;
-	else if (strcmp(substr, "LR1") == 0) 	type = STC_LR1;
-	else {HLT_UERR("File did not contain proper parsing type?");}
+	if 	(strncmp(substr, "LL0", 3) == 0) type = STC_LL0;
+	else if (strncmp(substr, "LL1", 3) == 0) type = STC_LL1;
+	else if (strncmp(substr, "LR0", 3) == 0) type = STC_LR0;
+	else if (strncmp(substr, "LR1", 3) == 0) type = STC_LR1;
+	else {
+		HLT_WRN("File did not contain proper parsing type?", HLT_MJRWRN);
+		return;
+	}
 		
 	SyntacBook *book = SyntacBookFromString(cntnts + nl + 1, type); //past the new line
 	
@@ -133,36 +150,39 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 }
 
 SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
-	int lin = 0, col = 0;
+	if (stream == NULL || stream[0] == '\0') {
+		HLT_WRN("Provided stream empty?", HLT_MJRWRN);
+		return NULL;
+	}
 
+	int lin = 0, col = 0;
 	struct stc_book *book = SyntacBookAllocate();
 	book->type = type;
 
-	char substrn[100]; substrn[0] = 0;
-	char substre[100];
+	char substrn[100]; substrn[0] = 0; //name or left consumption
+	char substre[100];		   //elms or right production
 	size_t nconsumeIdx = 0;
 	int slen = strlen(stream);
 	for (int i = 0; i < slen; i++) {
 		if (strncmp(stream+i, "->", 2) == 0) { //rule name found
-			HLTWarn("Book Make String. Found Name.", lin, col, HLT_DEBUG);
+			HLTWarn("BookFromString. Found Name.", lin, col, HLT_DEBUG);
 
-			int sublen = (i-1) - nconsumeIdx + 1;
-			if (sublen <= 0) HLTError("Empty Rule Name.", lin, col);
-			if (sublen >= 100) HLTError("Syntac does not support names longer than 99 characters!", lin, col);
+			int sublen = (i-1) - nconsumeIdx;
+			if (sublen <= 0) HLT_ERRLC("Empty Rule Name.", lin, col, HLT_MJRWRN);
+			if (sublen >= 100) HLT_ERRLC("Syntac does not support names longer than 99 characters!", lin, col);
 
 			strncpy(substrn, stream+nconsumeIdx, sublen);
 			substrn[sublen] = '\0';
 			
 			if (warn_level == HLT_DEBUG) printf("name found: %s\n", substrn);
 		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
-			HLTWarn("Book Make String. Found Definition.", lin, col, HLT_DEBUG);
+			if (substrn[0] == 0) continue; //no name, no rule
+			HLTWarn("BookFromString. Found Definition.", lin, col, HLT_DEBUG);
 
-			if (substrn[0] == 0) continue;
-
-			int sublen = (i-1) - nconsumeIdx + 1;
-			if (i >= slen-1) sublen++;
-			if (sublen <= 0) HLTError("Empty Rule Definition.", lin, col);
-			if (sublen >= 100) HLTError("Syntac does not support definitions longer than 99 characters!", lin, col);
+			int sublen = (i-1) - nconsumeIdx;
+			if (stream[i] != '\n') sublen++; //include last char
+			if (sublen <= 0) HLT_ERRLC("Empty Rule Definition.", lin, col);
+			if (sublen >= 100) HLT_ERRLC("Syntac does not support definitions longer than 99 characters!", lin, col);
 
 			strncpy(substre, stream+nconsumeIdx, sublen);
 			substre[sublen] = 0;
@@ -170,7 +190,7 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 			SyntacBookRuleAdd(book, substrn, substre);
 			substrn[0] = '\0';
 			substre[0] = '\0';
-			lin++; col = 0;
+			lin++; col = -1;
 		}
 		col++;
 	}

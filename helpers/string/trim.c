@@ -4,6 +4,9 @@
 #include <stdlib.h>
 
 //probably stolen from stack overflow, can't remember
+
+//trims whitespace from front and back of 'input', places result in nstr
+//returns whether input was not all whitespace
 bool trim(char *input, char **nstr) {
 	int ilen = strlen(input);
 	int front = 0;
@@ -22,7 +25,9 @@ bool trim(char *input, char **nstr) {
 	int len = (back - front) + 1;
 	if (len <= 0) return false;
 
-	*nstr = calloc(len+1, sizeof(char));
+	*nstr = (char*)calloc(len+1, sizeof(char));
+	if (*nstr == NULL) return false;
+
 	strncpy(*nstr, input+front, len);
 	return true;
 }

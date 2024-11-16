@@ -2,9 +2,6 @@
 #define __HEPHAESTUS_SYNTACTICAL_ANALYZER__
 #include <stdbool.h>
 
-//In-Case someone decides to use Lexic (like me?)
-typedef struct lxc_token LexicToken;
-
 //Public facing container of grammatical rules
 typedef struct stc_book SyntacBook;
 
@@ -20,7 +17,6 @@ typedef struct stc_tree_node {
 	enum stc_parsing_style type;
 	struct stc_tree_node *children; //null-terminated
 	char *rule_name; //Grammar Rule Name
-	char *contains; //Children in String Form
 
 	int line_start, col_start;
 	int line_end, col_end;
@@ -50,8 +46,8 @@ void SyntacBookFree(SyntacBook *);
 /*----------------------------Trees----------------------------*/
 
 //Generate a Syntactical Tree representation of tokens 
-//Expects token stream to be null-terminated
-SyntacTreeNode * SyntacTreeFromTokens(LexicToken *stream, SyntacBook *book);
+//Expects token stream to be null-terminated (void * -> LexicToken *)
+SyntacTreeNode * SyntacTreeFromTokens(void *stream, SyntacBook *book);
 
 //Generate a Syntactical Tree representation of string stream
 //Expects token string stream to be null-terminated (stream[x] == NULL || stream[x][0] == 0)
