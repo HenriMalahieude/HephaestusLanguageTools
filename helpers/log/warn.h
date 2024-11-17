@@ -1,5 +1,6 @@
 #ifndef __HEPH_INTERNAL_WARN__
 #define __HEPH_INTERNAL_WARN__
+#include <stdio.h>
 
 #define HLT_ERR_SYMB "[!] "
 #define HLT_WRN_SYMB "[?] "

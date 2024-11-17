@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "syntac_private.h"
+#include "syntac_internal.h"
 #include "../../helpers/string/handy.h"
 #include "../../helpers/log/warn.h"
 
@@ -61,7 +61,7 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 
 	//Count Amount of Elements (delimited by ':')
 	int elm_cnt = 0;
-	for (int i = 0; i < strlen(right); i++) if (right[i] == ':') elm_cnt++;
+	for (size_t i = 0; i < strlen(right); i++) if (right[i] == ':') elm_cnt++;
 
 	if (elm_cnt <= 0) {
 		HLT_WRN("Provided rule had no right production?", HLT_MJRWRN);
@@ -69,23 +69,22 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	}
 
 	//Initialize the rule + name
-	struct stc_rule *rule = (struct stc_rule *)malloc(sizeof(struct stc_rule));
-	rule->name = NULL
-	if (!trim(left, &rule->name)) {
+	struct stc_rule rule; //= (struct stc_rule *)malloc(sizeof(struct stc_rule));
+	rule.name = NULL;
+	if (!trim(left, &rule.name)) {
 		HLT_WRN("Empty left consumption for rule?", HLT_MJRWRN);
-		free(rule);
 		return;
 	}
 	
 	//Allocate amount of elements detected
-	rule->elements = (char**)malloc(sizeof(char *) * (elm_cnt+1));
-	rule->elements[elm_cnt] = NULL; //NULL-terminate
+	rule.elements = (char**)malloc(sizeof(char *) * (elm_cnt+1));
+	rule.elements[elm_cnt] = NULL; //NULL-terminate
 
 	//Parse the elements now
-	size_t elm_i = 0;
+	int elm_i = 0;
 	size_t nconsumeIdx = 0;
 	char substr[100];
-	for (int i = 1; i < strlen(right); i++) {
+	for (size_t i = 1; i < strlen(right); i++) {
 		if ((right[i] == ':' || i == strlen(right)-1)) {
 			int len = (i - nconsumeIdx); //non-inclusive
 			if (len-1 <= 0) {
@@ -95,9 +94,9 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 
 			strncpy(substr, right + nconsumeIdx, len);
 			substr[len] = '\0';
-			if (!trim(substr, &rule->elements[elm_i])) {
+			if (!trim(substr, &rule.elements[elm_i])) {
 				HLT_WRN("Element was only whitespace?", HLT_MJRWRN);
-				strcpy(&rule->elements[elm_i], substr);
+				strcpy(rule.elements[elm_i], substr);
 			}
 			elm_i += 1;
 		}
@@ -140,7 +139,7 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 	else if (strncmp(substr, "LR1", 3) == 0) type = STC_LR1;
 	else {
 		HLT_WRN("File did not contain proper parsing type?", HLT_MJRWRN);
-		return;
+		return NULL;
 	}
 		
 	SyntacBook *book = SyntacBookFromString(cntnts + nl + 1, type); //past the new line
@@ -168,7 +167,7 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 			HLTWarn("BookFromString. Found Name.", lin, col, HLT_DEBUG);
 
 			int sublen = (i-1) - nconsumeIdx;
-			if (sublen <= 0) HLT_ERRLC("Empty Rule Name.", lin, col, HLT_MJRWRN);
+			if (sublen <= 0) HLT_ERRLC("Empty Rule Name.", lin, col);
 			if (sublen >= 100) HLT_ERRLC("Syntac does not support names longer than 99 characters!", lin, col);
 
 			strncpy(substrn, stream+nconsumeIdx, sublen);

@@ -18,7 +18,7 @@ char* ftostr(char *file_name) {
 	file_size = ftell(read_from); //Amount of characters
 	rewind(read_from); //Back to top
 	
-	char *strm = (char*)calloc(sizeof(char), file_size); 
+	char *strm = (char*)calloc(file_size, sizeof(char)); 
 	if (strm == NULL) {
 		fclose(read_from);
 		HLT_AWRN("Failed to allocate memory for file?", HLT_MJRWRN);
