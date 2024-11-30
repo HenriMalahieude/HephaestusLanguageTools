@@ -46,7 +46,8 @@ void SyntacBookFree(SyntacBook *);
 /*----------------------------Trees----------------------------*/
 
 //Generate a Syntactical Tree representation of tokens 
-//Expects token stream to be null-terminated (void * -> LexicToken *)
+//Expects token stream to be null-terminated 
+//Also assumes that it receives LexicTokens (void * -> LexicToken *)
 SyntacTreeNode * SyntacTreeFromTokens(void *stream, SyntacBook *book);
 
 //Generate a Syntactical Tree representation of string stream

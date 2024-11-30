@@ -52,6 +52,7 @@ bool RuleAddTest() {
 #ifndef ALL_TESTS
 int test_count = 0;
 int main(void) {
+	//warn_level = HLT_DEBUG;
 	return !RuleAddTest();
 }
 #endif

@@ -3,6 +3,8 @@
 #ifndef __HEPH_INTERNAL_PRIVATE_SYNTAC__
 #define __HEPH_INTERNAL_PRIVATE_SYNTAC__
 
+#define RIGHT_DELIM ':'
+
 //Rule Definition
 // left -> right
 // a -> b c

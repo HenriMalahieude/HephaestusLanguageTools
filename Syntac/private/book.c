@@ -54,25 +54,22 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 		return;
 	}
 
-	if (right == NULL || left[0] == '\0') {
+	if (right == NULL || right[0] == '\0') {
 		HLT_WRN("Supplied 'right' of rule was null/empty?", HLT_MJRWRN);
 		return;
 	}
 
-	//Count Amount of Elements (delimited by ':')
-	int elm_cnt = 0;
-	for (size_t i = 0; i < strlen(right); i++) if (right[i] == ':') elm_cnt++;
-
-	if (elm_cnt <= 0) {
-		HLT_WRN("Provided rule had no right production?", HLT_MJRWRN);
-		return;
-	}
+	//Count Amount of Elements (delimited by RIGHT_DELIM)
+	int elm_cnt = 1;
+	for (size_t i = 0; i < strlen(right); i++) if (right[i] == RIGHT_DELIM) elm_cnt++;
 
 	//Initialize the rule + name
 	struct stc_rule rule; //= (struct stc_rule *)malloc(sizeof(struct stc_rule));
 	rule.name = NULL;
 	if (!trim(left, &rule.name)) {
-		HLT_WRN("Empty left consumption for rule?", HLT_MJRWRN);
+		char wrnmsg[64];
+		snprintf(wrnmsg, 64, "Name (left) of rule was all whitespace? Rules in book = %d", book->rule_count);
+		HLT_WRN(wrnmsg, HLT_MJRWRN);
 		return;
 	}
 	
@@ -84,21 +81,24 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	int elm_i = 0;
 	size_t nconsumeIdx = 0;
 	char substr[100];
-	for (size_t i = 1; i < strlen(right); i++) {
-		if ((right[i] == ':' || i == strlen(right)-1)) {
+	for (size_t i = 1; i <= strlen(right); i++) {
+		if (right[i] == RIGHT_DELIM || right[i] == '\0') { //delimiter or end
 			int len = (i - nconsumeIdx); //non-inclusive
 			if (len-1 <= 0) {
-				HLT_WRN("Empty element inside of rule's right production?", HLT_MJRWRN);
+				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_MJRWRN);
 				continue;
 			}
 
 			strncpy(substr, right + nconsumeIdx, len);
 			substr[len] = '\0';
+			//printf("Elm %d: '%s'\n", elm_i+1, substr);
 			if (!trim(substr, &rule.elements[elm_i])) {
-				HLT_WRN("Element was only whitespace?", HLT_MJRWRN);
+				HLT_WRN("Element was only whitespace?", HLT_STDWRN);
 				strcpy(rule.elements[elm_i], substr);
 			}
+
 			elm_i += 1;
+			nconsumeIdx = i+1; //skip delim
 		}
 	}
 

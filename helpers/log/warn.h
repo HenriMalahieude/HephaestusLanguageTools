@@ -16,15 +16,17 @@
 
 //Warn: All
 #define HLT_AWRN(msg, type) {\
-	printf(HLT_WRN_SYMB); \
-	HLT_LOGLOC; \
+	if ((int)type <= (int)warn_level) { \
+		printf(HLT_WRN_SYMB); \
+		HLT_LOGLOC;} \
 	HLTWarn(msg, -1, -1, type);}
 
 //Warn: Function
 #define HLT_WRNLC(msg, line, col, type) {\
-	printf(HLT_WRN_SYMB); \
-	HLT_OUTFUNC; \
-	printf(" > "); \
+	if ((int)type <= (int)warn_level){ \
+		printf(HLT_WRN_SYMB); \
+		HLT_OUTFUNC; \
+		printf(" > ");} \
 	HLTWarn(msg, line, col, type);}
 
 #define HLT_WRN(msg, type) HLT_WRNLC(msg, -1, -1, type)
