@@ -53,29 +53,24 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 		HLT_WRN("Supplied 'left' of rule was null/empty?", HLT_MJRWRN);
 		return;
 	}
-
-	if (right == NULL || right[0] == '\0') {
-		HLT_WRN("Supplied 'right' of rule was null/empty?", HLT_MJRWRN);
-		return;
-	}
+	
+	//NOTE: Removed because we want null rules (epsilon rules iirc?)
+	//if (right == NULL) HLT_WRN("Supplied 'right' of rule was null/empty?", HLT_VERBSE);
 
 	//Count Amount of Elements (delimited by RIGHT_DELIM)
 	int elm_cnt = 1;
 	for (size_t i = 0; i < strlen(right); i++) if (right[i] == RIGHT_DELIM) elm_cnt++;
 
 	//Initialize the rule + name
-	struct stc_rule rule; //= (struct stc_rule *)malloc(sizeof(struct stc_rule));
+	struct stc_rule rule; 
 	rule.name = NULL;
 	if (!trim(left, &rule.name)) {
-		char wrnmsg[64];
-		snprintf(wrnmsg, 64, "Name (left) of rule was all whitespace? Rules in book = %d", book->rule_count);
-		HLT_WRN(wrnmsg, HLT_MJRWRN);
+		HLT_WRN("Attempted to insert rule with empty left/name?", HLT_MJRWRN);
 		return;
 	}
 	
 	//Allocate amount of elements detected
-	rule.elements = (char**)malloc(sizeof(char *) * (elm_cnt+1));
-	rule.elements[elm_cnt] = NULL; //NULL-terminate
+	rule.elements = (char**)calloc((elm_cnt+1), sizeof(char *));//calloc nulls out entire thing
 
 	//Parse the elements now
 	int elm_i = 0;
@@ -85,16 +80,15 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 		if (right[i] == RIGHT_DELIM || right[i] == '\0') { //delimiter or end
 			int len = (i - nconsumeIdx); //non-inclusive
 			if (len-1 <= 0) {
-				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_MJRWRN);
+				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_VERBSE);
 				continue;
 			}
 
 			strncpy(substr, right + nconsumeIdx, len);
 			substr[len] = '\0';
-			//printf("Elm %d: '%s'\n", elm_i+1, substr);
 			if (!trim(substr, &rule.elements[elm_i])) {
-				HLT_WRN("Element was only whitespace?", HLT_STDWRN);
-				strcpy(rule.elements[elm_i], substr);
+				HLT_WRN("Element was only whitespace? Skipping.", HLT_VERBSE);
+				//strcpy(rule.elements[elm_i], substr);
 			}
 
 			elm_i += 1;
@@ -103,13 +97,12 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	}
 
 	if (elm_i < elm_cnt) {
-		snprintf(substr, 100, "Rule %s expected %d elements, got %d?", left, elm_cnt, elm_i);
-		HLT_WRN(substr, HLT_MJRWRN);
+		snprintf(substr, 100, "Rulebook attempted to add '%s' (%d prev) expected %d elements, got %d?", left, book->rule_count, elm_cnt, elm_i);
+		HLT_WRN(substr, HLT_VERBSE);
 	}
 
-	//Place into the book
+	//Place into the book, unless you have a better idea, we will be reallocing 1 by 1
 	book->rules = (struct stc_rule *)realloc(book->rules, sizeof(struct stc_rule) * ++(book->rule_count)); 
-	//unless you have a better idea, we will be reallocing 1 by 1
 	book->rules[book->rule_count-1] = rule;
 }
 
@@ -125,9 +118,9 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 		return NULL;
 	}
 
-	int nl; //new line location
-	for (nl = 0; cntnts[nl] == '\0' || cntnts[nl] == '\n'; nl++);
-	if (nl == 0) HLT_ERR("File had no content?");
+	int nl = 0; //new line location
+	for (nl = 0; cntnts[nl] != '\0' && cntnts[nl] != '\n'; nl++);
+	if (nl == 0) HLT_ERR("File had no type specifier? (Or was empty?)");
 
 	char substr[100];
 	strncpy(substr, cntnts, nl);
@@ -162,31 +155,43 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 	char substre[100];		   //elms or right production
 	size_t nconsumeIdx = 0;
 	int slen = strlen(stream);
-	for (int i = 0; i < slen; i++) {
+	for (int i = 0; i <= slen; i++) {
 		if (strncmp(stream+i, "->", 2) == 0) { //rule name found
-			HLTWarn("BookFromString. Found Name.", lin, col, HLT_DEBUG);
+			HLT_WRNLC("Found Name!", lin, col, HLT_DEBUG);
 
-			int sublen = (i-1) - nconsumeIdx;
+			int sublen = i - nconsumeIdx;
 			if (sublen <= 0) HLT_ERRLC("Empty Rule Name.", lin, col);
 			if (sublen >= 100) HLT_ERRLC("Syntac does not support names longer than 99 characters!", lin, col);
 
 			strncpy(substrn, stream+nconsumeIdx, sublen);
 			substrn[sublen] = '\0';
+			nconsumeIdx = i+2;
 			
-			if (warn_level == HLT_DEBUG) printf("name found: %s\n", substrn);
-		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
-			if (substrn[0] == 0) continue; //no name, no rule
-			HLTWarn("BookFromString. Found Definition.", lin, col, HLT_DEBUG);
+			if (warn_level == HLT_DEBUG) printf("Name found: '%s'\n", substrn);
+		} else if (stream[i] == '\n' || stream[i] == '\0' || stream[i] == EOF) { //new line or eofS
+			HLT_WRNLC("Found newline/end.", lin, col, HLT_DEBUG);
+			if (substrn[0] == '\0') {
+				nconsumeIdx = i+1;
+				substrn[0] = '\0';
+				substre[0] = '\0';
+				lin++; col = -1;
+				continue; //no name, no rule
+			}
+			HLT_WRNLC("Found Definition.", lin, col, HLT_DEBUG);
 
-			int sublen = (i-1) - nconsumeIdx;
+			int sublen = i - nconsumeIdx;
 			if (stream[i] != '\n') sublen++; //include last char
-			if (sublen <= 0) HLT_ERRLC("Empty Rule Definition.", lin, col);
+			if (sublen <= 0) HLT_WRNLC("Empty Rule Definition.", lin, col, HLT_VERBSE);
 			if (sublen >= 100) HLT_ERRLC("Syntac does not support definitions longer than 99 characters!", lin, col);
 
-			strncpy(substre, stream+nconsumeIdx, sublen);
+			if (sublen > 0) strncpy(substre, stream+nconsumeIdx, sublen);
 			substre[sublen] = 0;
 
 			SyntacBookRuleAdd(book, substrn, substre);
+			if (warn_level == HLT_DEBUG) printf("Definition found: '%s'\n", substre);
+
+			//Reset
+			nconsumeIdx = i+1;
 			substrn[0] = '\0';
 			substre[0] = '\0';
 			lin++; col = -1;

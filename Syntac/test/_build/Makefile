@@ -2,7 +2,10 @@ CC = gcc
 FLAGS = -Wall -Wextra -g
 XTRA_FLAGS ?=
 
-INDV_TESTS = book_ruleadd
+INDV_TESTS = book_ruleadd book_fromx
+
+book_fromx: warn.o book.o file_to_str.o trim.o
+	$(CC) -o $@ ../from.c $^ $(FLAGS) $(XTRA_FLAGS)
 
 book_ruleadd: warn.o book.o file_to_str.o trim.o
 	$(CC) -o $@ ../ruleadd.c $^ $(FLAGS) $(XTRA_FLAGS)

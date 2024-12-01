@@ -11,14 +11,20 @@ char* ftostr(char *file_name) {
 
 	int succ = fseek(read_from, 0, SEEK_END); //Move to eof
 	if (succ != 0) {
+		fclose(read_from);
 		HLT_AWRN("Couldn't seek file to the end?", HLT_MJRWRN);
 		return NULL;
 	}
 
 	file_size = ftell(read_from); //Amount of characters
 	rewind(read_from); //Back to top
+	if (file_size <= 0) {
+		fclose(read_from);
+		HLT_AWRN("File is empty, meaningless to load.", HLT_STDWRN);
+		return NULL;
+	}
 	
-	char *strm = (char*)calloc(file_size, sizeof(char)); 
+	char *strm = (char*)calloc(file_size+1, sizeof(char));
 	if (strm == NULL) {
 		fclose(read_from);
 		HLT_AWRN("Failed to allocate memory for file?", HLT_MJRWRN);

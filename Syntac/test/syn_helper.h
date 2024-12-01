@@ -23,7 +23,7 @@ static bool TEST(int input, int shouldbe) {
 	else printf("[+]\n");
 #endif
 	test_count++;
-	return input == shouldbe;
+	return val;
 }
 
 static bool TEST_STRING(char *input, char *shouldbe) {

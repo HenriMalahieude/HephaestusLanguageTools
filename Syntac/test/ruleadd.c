@@ -2,6 +2,7 @@
 #include "syn_helper.h"
 
 bool RuleAddTest() {
+	test_count = 0;
 	int valid = 0;
 	
 #ifdef VERBOSE
@@ -15,10 +16,18 @@ bool RuleAddTest() {
 	if (warn_level != HLT_DEBUG) warn_level = HLT_SILENT; //silence other than debug mode
 	SyntacBookRuleAdd(book, "", ""); //these will warn, hence the silence
 	SyntacBookRuleAdd(book, "", "item");
-	SyntacBookRuleAdd(book, "item", "");
 	if (!TEST(book->rule_count, 0)) return false; //if any of these added 1, this is fatal
+	valid += 1;
+	
+	//Test edge case (NULL/epsilon rules)
+	SyntacBookRuleAdd(book, "NULL", "");
+	if (!TEST_STRING(book->rules[0].name, "NULL")) return false;
+	if (!TEST_NULL(book->rules[0].elements[0])) return false;
+	valid += 2;
 	warn_level = tmp; //reset
 
+	SyntacBookFree(book);
+	book = SyntacBookAllocate();
 	valid += (int)TEST_NULL(book->rules);
 	
 	SyntacBookRuleAdd(book, "left", "right");
@@ -44,9 +53,9 @@ bool RuleAddTest() {
 	SyntacBookFree(book);
 
 #ifdef VERBOSE
-	printf("[!] Syntac Rule Add Test Finished\n");
+	printf("[!] Syntac Rule Add Test Finished w/ (Succ=%d)\n", (valid == test_count));
 #endif
-	return valid == (test_count-1);
+	return valid == test_count;
 }
 
 #ifndef ALL_TESTS
