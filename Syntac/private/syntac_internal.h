@@ -20,18 +20,23 @@ struct stc_book {
 	int rule_count;
 };
 
-SyntacTreeNode * LL0ParseTokens(void *stream, SyntacBook *book);
-SyntacTreeNode * LL1ParseTokens(void *stream, SyntacBook *book);
-SyntacTreeNode * LR0ParseTokens(void *stream, SyntacBook *book);
-SyntacTreeNode * LR1ParseTokens(void *stream, SyntacBook *book);
+struct stc_top_table_entry {
+	char *token_seen;
+	struct stc_rule *rule_to_use;
+};
 
-SyntacTreeNode * LL0ParseStream(char **stream, SyntacBook *book);
-SyntacTreeNode * LL1ParseStream(char **stream, SyntacBook *book);
-SyntacTreeNode * LR0ParseStream(char **stream, SyntacBook *book);
-SyntacTreeNode * LR1ParseStream(char **stream, SyntacBook *book);
+struct stc_bot_table_entry {};
 
-bool LL0Validate(SyntacBook *);
-bool LL1Validate(SyntacBook *);
-bool LR0Validate(SyntacBook *);
-bool LR1Validate(SyntacBook *);
+//Outputs: array = {{rule.name, set of first/follow tokens}, ...};
+char **firsts(SyntacBook *book);
+char **follows(SyntacBook *book);
+
+struct stc_tree_node * TopParseTokens(void *stream, SyntacBook *book);
+struct stc_tree_node * BotParseTokens(void *stream, SyntacBook *book);
+
+struct stc_tree_node * TopParseStream(char **stream, SyntacBook *book);
+struct stc_tree_node * BotParseStream(char **stream, SyntacBook *book);
+
+//struct stc_top_table_entry * TopValidate(SyntacBook *);
+//struct stc_bot_table_entry * BotValidate(SyntacBook *);
 #endif

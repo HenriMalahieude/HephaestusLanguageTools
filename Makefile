@@ -14,10 +14,9 @@ DIRS := $(OUT_LXC) $(OUT_SYC) $(OUT_MTC) $(OUT_HLP) $(OUT_LIB)
 .SUFFIXES:
 
 all: $(DIRS) helpers Lexic #Syntac Mantic (unimplemented)
-	@mkdir -p $(OUT_LIB)/shared
-	@mkdir -p $(OUT_LIB)/object
-	$(foreach t,$(shell find -name *.so), @cp $t $(OUT_LIB)/shared/)
-	$(foreach t,$(shell find -name *.a) , @cp $t $(OUT_LIB)/object/)
+	@mkdir -p $(OUT_LIB)
+	$(foreach t,$(shell find -name *.so), @cp $t $(OUT_LIB))
+	$(foreach t,$(shell find -name *.a) , @cp $t $(OUT_LIB))
 	$(info [!!!] Linked libs into $(OUT_LIB))
 
 Lexic: $(OUT_LXC) helpers

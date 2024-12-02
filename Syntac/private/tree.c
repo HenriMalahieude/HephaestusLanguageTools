@@ -9,25 +9,16 @@ SyntacTreeNode * SyntacTreeFromTokens(void *stream, Syntac *book) {
 	}
 
 	if (book == NULL) {
-		HLT_WRN("Rule Book given null?", HLT_MJRWRN);
-		return NULL;
-	}
-
-	if (!SyntacBookValidate(book)) {
-		HLT_WRN("Rule Book given cannot be formed into a parsing table!", HLT_MJRWRN);
+		HLT_WRN("Rule Book null?", HLT_MJRWRN);
 		return NULL;
 	}
 
 	SyntacTreeType typ = book->type;
 	switch (typ) {
-		case (STC_LL0):
-			return LL0ParseTokens(stream, book);
-		case (STC_LL1):
-			return LL1ParseTokens(stream, book);
-		case (STC_LR0):
-			return LR0ParseTokens(stream, book);
-		case (STC_LR1):
-			return LR1ParseTokens(stream, book);
+		case (STC_TOP):
+			return TopParseTokens(stream, book);
+		case (STC_BOT):
+			return BotParseTokens(stream, book);
 		default:
 			HLT_AERR("Unknown Parsing Type!?!?");
 			break;
@@ -43,21 +34,17 @@ SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
 		return NULL;
 	}
 
-	if (!SyntacBookValidate(book)) {
-		HLT_WRN("Rule Book given cannot be formed into a parsing table!", HLT_MJRWRN);
+	if (book == NULL) {
+		HLT_WRN("Rule Book null?", HLT_MJRWRN);
 		return NULL;
 	}
 
 	SyntacTreeType typ = book->type;
 	switch (typ) {
-		case (STC_LL0):
-			return LL0ParseStream(stream, book);
-		case (STC_LL1):
-			return LL1ParseStream(stream, book);
-		case (STC_LR0):
-			return LR0ParseStream(stream, book);
-		case (STC_LR1):
-			return LR1ParseStream(stream, book);
+		case (STC_TOP):
+			return TopParseStream(stream, book);
+		case (STC_BOT):
+			return BotParseStream(stream, book);
 		default:
 			HLT_AERR("Unknown Parsing Type!?!?");
 			break;
@@ -65,31 +52,6 @@ SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
 	
 	HLT_AERR("Unreachable!?!?");
 	return NULL;
-}
-
-bool SyntacBookValidate(SyntacBook *book) {
-	if (book == NULL) {
-		HLT_WRN("Rule book null?", HLT_MJRWRN);
-		return false;
-	}
-
-	SyntacTreeType typ = book->type;
-	switch (typ) {
-		case (STC_LL0):
-			return LL0Validate(book);
-		case (STC_LL1):
-			return LL1Validate(book);
-		case (STC_LR0):
-			return LR0Validate(book);
-		case (STC_LR1):
-			return LR1Validate(book);
-		default:
-			HLT_AERR("Unknown Parsing Type!?!?");
-			break;
-	}
-	
-	HLT_AERR("Unreachable!?!?");
-	return false;
 }
 
 void SyntacTreeFree(SyntacTreeNode *tree) {

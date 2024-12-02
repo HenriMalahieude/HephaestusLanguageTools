@@ -125,11 +125,9 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 	char substr[100];
 	strncpy(substr, cntnts, nl);
 
-	enum stc_parsing_style type;
-	if 	(strncmp(substr, "LL0", 3) == 0) type = STC_LL0;
-	else if (strncmp(substr, "LL1", 3) == 0) type = STC_LL1;
-	else if (strncmp(substr, "LR0", 3) == 0) type = STC_LR0;
-	else if (strncmp(substr, "LR1", 3) == 0) type = STC_LR1;
+	enum stc_parsing_style type = STC_NON;
+	if 	(strncmp(substr, "TOP", 3) == 0) type = STC_TOP;
+	else if (strncmp(substr, "BOT", 3) == 0) type = STC_BOT;
 	else {
 		HLT_WRN("File did not contain proper parsing type?", HLT_MJRWRN);
 		return NULL;
@@ -157,7 +155,7 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 	int slen = strlen(stream);
 	for (int i = 0; i <= slen; i++) {
 		if (strncmp(stream+i, "->", 2) == 0) { //rule name found
-			HLT_WRNLC("Found Name!", lin, col, HLT_DEBUG);
+			//HLT_WRNLC("Found Name!", lin, col, HLT_DEBUG);
 
 			int sublen = i - nconsumeIdx;
 			if (sublen <= 0) HLT_ERRLC("Empty Rule Name.", lin, col);
@@ -169,7 +167,7 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 			
 			if (warn_level == HLT_DEBUG) printf("Name found: '%s'\n", substrn);
 		} else if (stream[i] == '\n' || stream[i] == '\0' || stream[i] == EOF) { //new line or eofS
-			HLT_WRNLC("Found newline/end.", lin, col, HLT_DEBUG);
+			//HLT_WRNLC("Found newline/end.", lin, col, HLT_DEBUG);
 			if (substrn[0] == '\0') {
 				nconsumeIdx = i+1;
 				substrn[0] = '\0';
@@ -177,7 +175,7 @@ SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
 				lin++; col = -1;
 				continue; //no name, no rule
 			}
-			HLT_WRNLC("Found Definition.", lin, col, HLT_DEBUG);
+			//HLT_WRNLC("Found Definition.", lin, col, HLT_DEBUG);
 
 			int sublen = i - nconsumeIdx;
 			if (stream[i] != '\n') sublen++; //include last char

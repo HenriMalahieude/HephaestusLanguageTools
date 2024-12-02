@@ -7,10 +7,10 @@ typedef struct stc_book SyntacBook;
 
 //Types of Grammar Trees
 typedef enum stc_parsing_style {
-	STC_LL0 = 0, 	//Top-Down
-	STC_LL1, 	//Top-Down  w/ Lookahead
-	STC_LR0, 	//Bottom-Up
-	STC_LR1, 	//Bottom-Up w/ Lookahead
+	STC_NON = 0,
+	STC_TOP, 	//Top-Down (LL1)
+	STC_BOT, 	//Bottom-Up (LR1)
+	STC_SZ,
 } SyntacTreeType;
 
 typedef struct stc_tree_node {
