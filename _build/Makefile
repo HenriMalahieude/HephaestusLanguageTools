@@ -3,11 +3,19 @@ AR = ar
 BFLAGS = -Wall
 DY_FLAGS = -fPIC
 
-NAME ?=Lexic
+# Default to Lexic
+
+NAME ?= Lexic
 $(eval REMAINDDER_NAME := $$$(NAME))
 ABRV :=$(subst $(REMAINDDER_NAME),,$(NAME))
 
-OUTDIR ?= .
+# If you have a better idea, I'm all ears.
+# No. I am not installing GNU/Make Standard Lib
+LOWER_NAME := $(shell echo $(NAME) | tr A-Z a-z)
+LIBNAME ?=$(foreach t,$(LOWER_NAME),lib$t)
+
+OUTDIR ?= ./Lexic
+OUTLIB ?= ./lib
 SRC_LOC ?= ../Lexic/private
 HLP_LOC ?= ../helpers
 HLP_OBJDIR ?= ./Helpers
@@ -23,7 +31,7 @@ OBJECTS := $(foreach t, $(SOURCES),$(basename $(notdir $t)).o)
 DYN_OBJS := $(foreach t, $(OBJECTS),$(DYNAMI_OUTDIR)/$t)
 STT_OBJS := $(foreach t, $(OBJECTS),$(STATIC_OUTDIR)/$t)
 
-#Print Help
+# Print Help
 NULL :=
 TAB := $(NULL)    $(NULL)
 define ENDL
@@ -32,29 +40,29 @@ define ENDL
 endef
 
 .PHONY: all clean clean_all dynamic static 
-	
+
 all: $(HLP_OBJDIR) dynamic static 
 	$(info [!!$(ABRV)] $(NAME) Library Fully Compiled$(ENDL))
 
-dynamic: $(HLP_OBJDIR) $(DYNAMI_OUTDIR) $(DYNAMI_OUTDIR)/liblexic.so
+dynamic: $(DYNAMI_OUTDIR) $(OUTLIB)/$(LIBNAME).so
 	$(info [!d$(ABRV)]$(TAB)$(NAME) Dynamically Complete)
 
-static: $(HLP_OBJDIR) $(STATIC_OUTDIR) $(STATIC_OUTDIR)/liblexic.a
+static: $(STATIC_OUTDIR) $(OUTLIB)/$(LIBNAME).a
 	$(info [!s$(ABRV)]$(TAB)$(NAME) Statically Complete)
 
 # Dynamic Library Creation
-$(DYNAMI_OUTDIR)/liblexic.so: $(DYN_OBJS)
+$(OUTLIB)/%.so: $(DYN_OBJS)
 	$(info [dl$(ABRV)]$(TAB)Linking dynamically!)
-	$(CC) -shared -o $(DYNAMI_OUTDIR)/liblexic.so $(DYNAMI_OUTDIR)/*.o $(HLP_OBJDIR)/shared/*.o $(BFLAGS) $(DY_FLAGS)
+	$(CC) -shared -o $@ $(DYNAMI_OUTDIR)/*.o $(HLP_OBJDIR)/shared/*.o $(BFLAGS) $(DY_FLAGS)
 
 $(DYNAMI_OUTDIR)/%.o: $(SRC_LOC)/%.c $(SRC_HDRS) $(HLP_HDRS)
 	$(info [.d$(ABRV)]$(TAB)$(TAB)$(notdir $@))
 	$(CC) $< -c -o $@ $(BFLAGS) $(DY_FLAGS)
 
 # Static Library Creation
-$(STATIC_OUTDIR)/liblexic.a: $(STT_OBJS)
+$(OUTLIB)/%.a: $(STT_OBJS)
 	$(info [sl$(ABRV)]$(TAB)Linking lexic statically!)
-	$(AR) rcs $(STATIC_OUTDIR)/liblexic.a $(STATIC_OUTDIR)/*.o $(HLP_OBJDIR)/object/*.o
+	$(AR) rcs $@ $(STATIC_OUTDIR)/*.o $(HLP_OBJDIR)/object/*.o
 
 $(STATIC_OUTDIR)/%.o: $(SRC_LOC)/%.c $(SRC_HDRS) $(HLP_HDRS)
 	$(info [.o$(ABRV)]$(TAB)$(TAB)$(notdir $@))
@@ -64,5 +72,5 @@ $(STATIC_OUTDIR) $(DYNAMI_OUTDIR):
 	mkdir -p $@
 
 $(HLP_OBJDIR):
-	$(info [XXX] Helper Objects weren't created?)
+	$(info [XXX] Helper Objects weren't created? $(ENDL) $(ENDL))
 	$(error No Helper Objects)
