@@ -64,6 +64,8 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	//Initialize the rule + name
 	struct stc_rule rule; 
 	rule.name = NULL;
+	rule.first_set = NULL;
+	rule.follow_set = NULL;
 	if (!trim(left, &rule.name)) {
 		HLT_WRN("Attempted to insert rule with empty left/name?", HLT_MJRWRN);
 		return;
