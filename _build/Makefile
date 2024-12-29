@@ -39,7 +39,7 @@ define ENDL
 
 endef
 
-.PHONY: all clean clean_all dynamic static 
+.PHONY: all dynamic static 
 
 all: $(HLP_OBJDIR) dynamic static 
 	$(info [!!$(ABRV)] $(NAME) Library Fully Compiled$(ENDL))

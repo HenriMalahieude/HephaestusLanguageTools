@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "sets.h"
 
 bool SetContains(char **set, char *item) {
@@ -16,10 +18,11 @@ bool SetContains(char **set, char *item) {
 //One by one add, may not be totally efficient
 //...
 //But honestly who cares, I got better things to do
-//NOTE: Could track capacity with special 0x1, 0x2, 0x0 "pointer" values (since first page still), but a little too much tbh
+//NOTE: Could track capacity with special 0x1, 0x2, 0x0 "pointer" values
+//		But that's a bit too overkill for this lmao
 bool SetAdd(char ***set, char *item) {
 	if (item == NULL || set == NULL) return false;
-	if (!SetContains(item, *set)) return false;
+	if (SetContains(*set, item)) return false;
 
 	int count = SetCount(*set);
 	char **tmp = malloc(sizeof(char **) * (count+2));
