@@ -23,16 +23,6 @@ struct stc_rule {
 	char **follow_set;
 };
 
-//Rule Book
-struct stc_book {
-	enum stc_parsing_style type;
-	struct stc_rule *rules;
-	int rule_count;
-
-	struct stc_top_table_entry *top_table;
-	struct stc_bot_table_entry *bot_table;
-};
-
 //Parsing Tables
 //	TODO: Serializability?
 struct stc_top_table_entry {
@@ -44,17 +34,24 @@ struct stc_bot_table_entry {
 	char **tokens_seen;
 };
 
+//Rule Book
+struct stc_book {
+	enum stc_parsing_style type;
+	struct stc_rule *rules;
+	int rule_count;
+
+	struct stc_top_table_entry *top_table;
+	struct stc_bot_table_entry *bot_table;
+};
+
 bool is_terminal(struct stc_book *book, char *element);
 
 void firsts_of_book(struct stc_book *book);
 void follow_of_book(struct stc_book *book);
 
-struct stc_tree_node * TopParseTokens(void *stream, struct stc_book *book);
-struct stc_tree_node * BotParseTokens(void *stream, struct stc_book *book);
+struct stc_tree_node * TopParseTokens(struct stc_book *book, void *stream);
+struct stc_tree_node * TopParseStream(struct stc_book *book, char **stream);
 
-struct stc_tree_node * TopParseStream(char **stream, struct stc_book *book);
-struct stc_tree_node * BotParseStream(char **stream, struct stc_book *book);
-
-//struct stc_top_table_entry * TopValidate(struct stc_book *);
-//struct stc_bot_table_entry * BotValidate(struct stc_book *);
+struct stc_tree_node * BotParseTokens(struct stc_book *book, void *stream);
+struct stc_tree_node * BotParseStream(struct stc_book *book, char **stream);
 #endif
