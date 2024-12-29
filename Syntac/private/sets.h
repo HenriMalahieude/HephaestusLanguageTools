@@ -7,11 +7,12 @@
 //Sets must be NULL-Terminated
 
 //Set contains string, yes or no
-bool SetContains(char *item, char **set);
+bool SetContains(char **set, char *item);
 
 //Outputs succesful (and unique) additions to the set
 //If it's in the set before, it returns false
-bool SetAdd(char *item, char ***set);
+//Makes a (malloc) copy of the item
+bool SetAdd(char ***set, char *item);
 
 //Amount of elements in set
 int SetCount(char **set);

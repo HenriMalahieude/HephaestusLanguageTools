@@ -1,4 +1,5 @@
 #include "../syntac.h"
+#include "sets.h"
 
 #ifndef __HEPH_INTERNAL_PRIVATE_SYNTAC__
 #define __HEPH_INTERNAL_PRIVATE_SYNTAC__
@@ -6,9 +7,13 @@
 // separator for the right production of rules
 #define RIGHT_DELIM ':'
 
+//Used for firsts and follows (empty)
+//Should be impossible to get this through as a "name" or "elements[i]" of stc_rule
+#define EPSILON "\1" 
+
 //Rule Definition
 // left -> right 
-// a -> b : c:xx 
+// a -> b : c:xx :
 // which is [ 'a' consumes 'b' 'c' 'xx' ('bcxx') ]
 struct stc_rule {
 	char *name; //also the left part of the rule
@@ -23,20 +28,23 @@ struct stc_book {
 	enum stc_parsing_style type;
 	struct stc_rule *rules;
 	int rule_count;
+
+	struct stc_top_table_entry *top_table;
+	struct stc_bot_table_entry *bot_table;
 };
 
 //Parsing Tables
-//	NOTE: Currently the table is going to be regenerated at each running of the ___Parse___() function
-//	TODO: Rewrite the struct's so they can store table entries when multiple function calls
-//	TODO: ... serializability?
+//	TODO: Serializability?
 struct stc_top_table_entry {
 	char *token_seen;
 	struct stc_rule *rule_to_use;
 };
 
 struct stc_bot_table_entry {
-	//TODO
+	char **tokens_seen;
 };
+
+bool is_terminal(struct stc_book *book, char *element);
 
 void firsts_of_book(struct stc_book *book);
 void follow_of_book(struct stc_book *book);

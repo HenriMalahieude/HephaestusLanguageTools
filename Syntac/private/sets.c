@@ -1,7 +1,7 @@
 #include <string.h>
 #include "sets.h"
 
-bool SetContains(char *item, char **set) {
+bool SetContains(char **set, char *item) {
 	if (set == NULL || item == NULL) return false;
 
 	int count = SetCount(set);
@@ -17,7 +17,7 @@ bool SetContains(char *item, char **set) {
 //...
 //But honestly who cares, I got better things to do
 //NOTE: Could track capacity with special 0x1, 0x2, 0x0 "pointer" values (since first page still), but a little too much tbh
-bool SetAdd(char *item, char ***set) {
+bool SetAdd(char ***set, char *item) {
 	if (item == NULL || set == NULL) return false;
 	if (!SetContains(item, *set)) return false;
 
