@@ -14,6 +14,9 @@ bool SetContains(char **set, char *item);
 //Makes a (malloc) copy of the item
 bool SetAdd(char ***set, char *item);
 
+//Returns a dynamically allocated set union between set1 & set2
+char ** SetUnion(char **set1, char **set2);
+
 //Amount of elements in set
 int SetCount(char **set);
 

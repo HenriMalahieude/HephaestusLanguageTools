@@ -42,6 +42,27 @@ bool SetAdd(char ***set, char *item) {
 	return true;
 }
 
+char ** SetUnion(char **set1, char **set2) {
+	int count1 = SetCount(set1);
+	int count2 = SetCount(set2);
+	if (count1 <= 0 && count2 <= 0) return NULL;
+
+	//int countN = count1 + count2;
+	char ** uset = NULL; 
+	// NOTE: could be made faster if we preallocated the stuff (malloc), but whatever... that's more programming
+	// 	 	 if you wanted speed/efficiency, go use LLVM or GNU Compiler Stack lol
+
+	for (int i = 0; i < count1; i++) {
+		SetAdd(&uset, set1[i]);
+	}
+
+	for (int i = 0; i < count2; i++) {
+		SetAdd(&uset, set2[i]);
+	}
+	
+	return uset;
+}
+
 int SetCount(char **set) {
 	if (set == NULL) return 0;
 

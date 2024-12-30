@@ -40,9 +40,37 @@ bool SetTest() {
 	valid += TEST_STRING(set[2], "cC");
 	valid += TEST_STRING(set[3], "Cc");
 	valid += TEST_NULL(set[4]); // */
+								
+	if (test_count != valid) {
+#ifdef VERBOSE
+		printf("[/] Failed before checkpoint.\n");
+#endif
+		goto bottom;
+	}
+	
+	//Check Unions
+	valid += TEST_NULL(SetUnion(NULL, NULL));
 
-	SetFree(set);
-	set = NULL;
+	char **same_set = SetUnion(NULL, set);
+	valid += TEST(SetCount(same_set), 4);
+	SetFree(same_set);
+
+	char **new_set = NULL;
+	SetAdd(&new_set, "d");
+	SetAdd(&new_set, "c");
+	valid += TEST(SetCount(new_set), 2);
+
+	char **union_set = SetUnion(set, new_set);
+	valid += TEST(SetCount(union_set), 6);
+	valid += TEST(SetContains(union_set, "c"), 1);
+	valid += TEST(SetContains(union_set, "a"), 1);
+	valid += TEST(SetContains(union_set, "cC"), 1);
+	
+	SetFree(new_set); new_set = NULL;
+	SetFree(union_set); union_set = NULL;
+
+bottom:
+	SetFree(set); set = NULL;
 #ifdef VERBOSE
 	printf("[!] Set Test Finished\n");
 #endif
