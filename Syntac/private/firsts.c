@@ -37,21 +37,24 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 			if (i == j) continue; //loops into same rule are ignored (a -> a b a c, only b & c considered)
 
 			if (book->rules[j].first_set == NULL) firsts_of_rule(book, &book->rules[j]);
-			
-			if (book->rules[j].first_set == (void*)0x1) { //TODO: what if two rules: a -> a b & a -> a d ?
+
+			// NOTE: if two rules: a -> a b & a -> a d, still counted.... sooooo there needs to be a 'a -> ' rule that wipes it out
+			if (book->rules[j].first_set == (void*)0x1) { 
 				char errmsg[100];
-				snprintf(errmsg, 100, "Grammar loop detected from rule '%s' into rule '%s'", rule->name, );
-				HLT_ERR(errmsg);
+				snprintf(errmsg, 100, "Grammar loop detected from rule '%s' into rule '%s'", rule->name, book->rules[j].name);
+				HLT_WRN(errmsg, HLT_STDWRN);
+				continue; //cannot use it, currently trying to finish it
 			}
 
-			//TODO: The Rest
+			//It's the rule we are looking for, not our own rule, and has a properly generated first set we can acquire
+			
 		}
 
 		break;
 	}
 
 	//check here
-	if (rule->first_set == (void*)0x1) HLT_AERR("We should have generated a first set here!!!");
+	if (rule->first_set == (void*)0x1) HLT_ERR("Failed to generate a First Set for this Grammar Book.");
 }
 
 void firsts_of_book(struct stc_book *book) {
