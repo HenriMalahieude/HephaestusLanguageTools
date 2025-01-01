@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "syntac_internal.h"
+#include "../../helpers/log/warn.h"
 
 int firsts_recursion_limit = 0;
 
@@ -11,7 +12,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 	if (firsts_recursion_limit >= FIRSTS_RCR_LIM) firsts_recursion_limit++;
 	else HLT_ERR("Recursion limit hit on recursive function!\nTODO: Make this cmd line arg!");
 
-	char *output[100];
+	char output[100];
 	snprintf(output, 100, "Calculating the first set of '%s'", rule->name);
 	HLT_WRN(output, HLT_VERBSE);
 	
@@ -24,7 +25,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 	for (int i = 0; rule->elements[i] != NULL; i++) {
 		char *elm = rule->elements[i];
 
-		if (is_terminal(elm)) {
+		if (is_terminal(book, elm)) {
 			SetAdd(&rule->first_set, elm);
 			break;
 		}
@@ -50,12 +51,9 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 		}
 	
 		if (new_first != NULL) {
-
-			bool can_empty = false;
 			for (int i = 0; new_first[i] != NULL; i++) {
 				if (strcmp(new_first[i], EPSILON) == 0) {
-					can_empty = true; //don't add epsilon to the first
-					if (book->elements[i+1] == NULL) SetAdd(&rule->first_set, EPSILON); //add it if no finality
+					if (rule->elements[i+1] == NULL) SetAdd(&rule->first_set, EPSILON); //add it if no finality
 				} else SetAdd(&rule->first_set, new_first[i]);
 			}
 
@@ -79,8 +77,6 @@ void firsts_of_book(struct stc_book *book) { //local use, all asserts/ifs should
 
 		changed = false;
 		for (int i = 0; i < book->rule_count; i++) { 
-			if (book->rules[i] == NULL) HLT_AERR("How is there no rule at this spot?");
-			
 			int set_sz = SetCount(book->rules[i].first_set);
 			firsts_of_rule(book, &book->rules[i]);
 			if (set_sz != SetCount(book->rules[i].first_set)) changed = true;

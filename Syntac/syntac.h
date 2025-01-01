@@ -32,7 +32,8 @@ SyntacBook * SyntacBookFromFile(char *file_name);
 SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type);
 
 //Validate grammar book can be built into table
-bool SyntacBookValidate(SyntacBook *);
+//TODO: check that this is needed
+//bool SyntacBookValidate(SyntacBook *);
 
 //Allocate an empty rule book
 SyntacBook * SyntacBookAllocate();

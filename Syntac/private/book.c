@@ -36,11 +36,17 @@ void SyntacBookFree(SyntacBook *book) {
 			free(rule->elements[j]); //free all elements inside
 		}
 		free(rule->elements); rule->elements = NULL; //free container
+		
+		//Free the sets we allocated
+		if (rule->first_set != NULL) SetFree(rule->first_set);
+		if (rule->follow_set != NULL) SetFree(rule->follow_set);
 	}
 
 	if (book->rules != NULL) free(book->rules); 
 	book->rules = NULL; book->rule_count = 0;
 	free(book);
+
+	HLT_WRN("TODO: top and bottom table freeing!", HLT_MJRWRN);
 }	
 
 void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
