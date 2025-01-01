@@ -5,9 +5,7 @@ bool BookFromTest() {
 	test_count = 0;
 	int valid = 0;
 
-#ifdef VERBOSE
-	printf("[!] Syntac Book From x Test Start\n");
-#endif
+	print_test("Start!");
 
 	//Simple0
 	char string0[] = "null-> ";
@@ -53,7 +51,7 @@ bool BookFromTest() {
 	char path[] = "../grammar.stc";
 	SyntacBook *book4 = SyntacBookFromFile(path);
 	valid += TEST((int)book4->type, (int)STC_TOP);
-	valid += TEST(book4->rule_count, 7);
+	valid += TEST(book4->rule_count, 9);
 	valid += TEST_STRING(book4->rules[0].name, "FUNC");
 	valid += TEST_STRING(book4->rules[1].name, "ARGS");
 	valid += TEST_STRING(book4->rules[2].name, "ARGS");
@@ -62,12 +60,10 @@ bool BookFromTest() {
 	valid += TEST_STRING(book4->rules[5].name, "STATEMENTS");
 	valid += TEST_STRING(book4->rules[6].name, "STATEMENT");
 	valid += TEST_NULL(book4->rules[0].elements[6]);
-	valid += TEST_STRING(book4->rules[6].elements[0], "NULL");
+	valid += TEST_STRING(book4->rules[6].elements[0], "WORD");
 
 bottom:
-#ifdef VERBOSE
-	printf("[!] Syntac Book From x Test Completed w/ (Succ = %d)\n", (valid == test_count));
-#endif
+	print_test("Finished!");
 	return valid == test_count;
 }
 

@@ -13,6 +13,14 @@
 
 extern int test_count;
 
+#ifdef VERBOSE
+# define print_test(msg) printf("[!] %s Test: %s\n", TEST_NAME, msg);
+#else
+# define print_test(msg) 
+#endif
+
+
+
 static bool TEST(int input, int shouldbe) {
 	bool val = (input == shouldbe);
 #ifndef VERBOSE

@@ -5,10 +5,7 @@ bool RuleAddTest() {
 	test_count = 0;
 	int valid = 0;
 	
-#ifdef VERBOSE
-	printf("[!] Syntac Rule Add Test Start \n");
-#endif
-
+	print_test("Start!");
 	SyntacBook *book = SyntacBookAllocate();
 
 	//Base Cases
@@ -52,9 +49,7 @@ bool RuleAddTest() {
 	
 	SyntacBookFree(book);
 
-#ifdef VERBOSE
-	printf("[!] Syntac Rule Add Test Finished w/ (Succ=%d)\n", (valid == test_count));
-#endif
+	print_test("Finished!");
 	return valid == test_count;
 }
 
