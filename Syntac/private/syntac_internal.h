@@ -11,6 +11,10 @@
 //Should be impossible to get this through as a "name" or "elements[i]" of stc_rule
 #define EPSILON "\1" 
 
+//Limitations
+#define FIRSTS_RCR_LIM 10000
+#define FIRSTS_CHG_LIM 1000
+
 //Rule Definition
 // left -> right 
 // a -> b : c:xx :
