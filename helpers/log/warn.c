@@ -44,7 +44,7 @@ void HLTWarn(int line, int col, enum hlt_warn_type type, const char *format, ...
 	append_line_no(line, col);
 	fprintf(stderr, ": ");
 	vfprintf(stderr, format, rest);
-	fprintf("\n");
+	fprintf(stderr, "\n");
 
 	va_end(rest);
 }

@@ -28,9 +28,18 @@ LexicVocabulary * LexicVocabularyAllocate() {
 }
 
 bool LexicVocabularyDefinitionAdd(LexicVocabulary *vocab, char *nme, char *rgx) {
-	if (vocab == NULL) HLTError("Vocab Add Def. Given NULL Vocab?", regex_line_no, regex_colu_no);
-	if (nme == NULL || nme[0] == '\0') HLTError("Vocab Add Def. Given empty name?", regex_line_no, regex_colu_no);
-	if (rgx == NULL || rgx[0] == '\0') HLTError("Vocab Add Def. Given empty regex?", regex_line_no, regex_colu_no);
+	if (vocab == NULL) {
+		HLT_WRNLC(regex_line_no, regex_colu_no, HLT_MJRWRN, "Given NULL Vocab?");
+		return false;
+	}
+	if (nme == NULL || nme[0] == '\0') {
+		HLT_WRNLC(regex_line_no, regex_colu_no, HLT_MJRWRN, "Given empty name?");
+		return false;
+	}
+	if (rgx == NULL || rgx[0] == '\0') {
+		HLT_WRNLC(regex_line_no, regex_colu_no, HLT_MJRWRN, "Given empty regex?");
+		return false;
+	}
 
 	if (!RegexValidate(rgx)) return false;
 
@@ -57,7 +66,10 @@ void LexicVocabularyFree(LexicVocabulary *vocab) {
 }
 
 LexicVocabulary * LexicVocabularyFromFile(char *file_name) {
-	if (file_name == NULL || file_name[0] == '\0') HLTError("Vocab Make File. Given empty file name?", regex_line_no, regex_colu_no);
+	if (file_name == NULL || file_name[0] == '\0') {
+		HLT_WRN(HLT_MJRWRN, "Given empty file name?");
+		return NULL;
+	}
 
 	if (strlen(file_name) <= 0) return NULL;
 
@@ -71,6 +83,11 @@ LexicVocabulary * LexicVocabularyFromFile(char *file_name) {
 
 //Expecting an input of "name: regex\n"+
 LexicVocabulary * LexicVocabularyFromString(char *stream) {
+	if (stream == NULL || stream[0] == '\0') {
+		HLT_WRN(HLT_MJRWRN, "Stream is null?");
+		return NULL;
+	}
+
 	regex_line_no = 1;
 	regex_colu_no = 1;
 	
@@ -81,32 +98,32 @@ LexicVocabulary * LexicVocabularyFromString(char *stream) {
 	int slen = strlen(stream);
 	for (int i = 0; i < slen; i++) {
 		if (stream[i] == ':') { //acquire the name
-			HLTWarn("Vocab Make String. Found Name.", regex_line_no, regex_colu_no, HLT_DEBUG);
+			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_DEBUG, "Found Name.");
 
 			int sublen = (i-1) - nconsumed_ind + 1;
-			if (sublen <= 0) HLTError("Empty Token Name.", regex_line_no, regex_colu_no);
-			if (sublen >= 100) HLTError("Lexic does not support names longer than 99 characters!", regex_line_no, regex_colu_no);
+			if (sublen <= 0) HLT_ERRLC(regex_line_no, regex_colu_no, "Empty Token Name.");
+			if (sublen >= 100) HLT_ERRLC(regex_line_no, regex_colu_no, "Lexic does not support names longer than 99 characters!");
 
 			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
-			if (!trim(substr, &nme)) HLTError("Empty Token Name.", regex_line_no, regex_colu_no);
+			if (!trim(substr, &nme)) HLT_ERRLC(regex_line_no, regex_colu_no, "Empty Token Name.");
 			nconsumed_ind = i+1;
 
-			if (warn_level == HLT_DEBUG) printf("name found: %s\n", nme);	
+			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_DEBUG, "name found: %s\n", nme);	
 		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
-			HLTWarn("Vocab Make String. Found Definition.", regex_line_no, regex_colu_no, HLT_DEBUG);
+			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_DEBUG, "Found Definition.");
 
 			if (nme == NULL) continue; //means it was an empty line
 
 			int sublen = (i-1) - nconsumed_ind + 1;	
 			if (i >= slen-1) sublen++;
-			if (sublen <= 0) HLTError("Empty Token Definition.", regex_line_no, regex_colu_no);
-			if (sublen >= 100) HLTError("Lexic does not support definitions longer than 99 characters!", regex_line_no, regex_colu_no);
+			if (sublen <= 0) HLT_ERRLC(regex_line_no, regex_colu_no, "Empty Token Definition.");
+			if (sublen >= 100) HLT_ERRLC(regex_line_no, regex_colu_no, "Lexic does not support definitions longer than 99 characters!");
 			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
 			struct lxc_definition dd = {.name = nme, .regex = NULL};
-			if (!trim(substr, &dd.regex)) HLTError("Empty Token Definition.", regex_line_no, regex_colu_no);
-			if (!RegexValidate(dd.regex)) HLTError("Could not create Token Dictionary.", regex_line_no, regex_colu_no);
+			if (!trim(substr, &dd.regex)) HLT_ERRLC(regex_line_no, regex_colu_no,"Empty Token Definition.");
+			if (!RegexValidate(dd.regex)) HLT_ERRLC(regex_line_no, regex_colu_no, "Could not create Token Dictionary.");
 			add_def(&dictionary, dd);
 			
 			nme = NULL;

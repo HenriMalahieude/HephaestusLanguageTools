@@ -9,8 +9,15 @@
 
 
 char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
-	if (file_name == NULL || file_name[0] == '\0') HLTError("Name Stream File. Given empty file_name?", regex_line_no, regex_colu_no);
-	if (vocab == NULL) HLTError("Name Stream File. Given NULL Vocab?", regex_line_no, regex_colu_no);
+	if (file_name == NULL || file_name[0] == '\0') {
+		HLT_WRN(HLT_MJRWRN, "Given empty file_name?");
+		return NULL;
+	}
+	
+	if (vocab == NULL) {
+		HLT_WRN(HLT_MJRWRN, "Given NULL vocabulary?");
+		return NULL;
+	}
 
 	char *strm = ftostr(file_name);
 
@@ -22,7 +29,10 @@ char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
 
 char ** LexicTokenNamesFromString(char *stream, LexicVocabulary *vocab) {
 	if (stream == NULL || stream[0] == '\0') return NULL;
-	if (vocab == NULL) HLTError("Name Stream String. Given NULL Vocab?", regex_line_no, regex_colu_no);
+	if (vocab == NULL) {
+		HLT_WRN(HLT_MJRWRN, "Given NULL Vocab?");
+		return NULL;
+	}
 
 	struct lxc_token *tstrm = LexicTokensFromString(stream, vocab);
 	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') return NULL;

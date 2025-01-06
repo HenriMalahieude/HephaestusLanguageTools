@@ -12,7 +12,7 @@
 
 //returns the index of the matching token definition to input, or -1 if no match
 int match_within_vocabulary(struct lxc_vocabulary *vocab, char *input) {	
-	if (warn_level == HLT_DEBUG) printf("_match_within_vocabulary. Finding match for '%s'\n", input);
+	HLT_WRN(HLT_DEBUG, "Finding match for '%s'\n", input);
 	int match_index = -1;
 	
 	for (int defi = 0; defi < vocab->def_count; defi++) {
@@ -27,11 +27,11 @@ int match_within_vocabulary(struct lxc_vocabulary *vocab, char *input) {
 }
 
 void add_token_to_tstream(struct lxc_token **tstrm, size_t *tlen, struct lxc_definition tdef, char *match) {
-	if (warn_level == HLT_DEBUG) printf("_add_token_to_tstream. Adding '%s' to tstream!\n", tdef.name);
+	HLT_WRN(HLT_DEBUG, "Adding '%s' to tstream!\n", tdef.name);
 	*tlen += 1;
 	*tstrm = realloc(*tstrm, *tlen * sizeof(struct lxc_token));
 
-	if (*tstrm == NULL) HLTError("_add_token_to_tstream. reallocation failed?", regex_line_no, regex_colu_no);
+	if (*tstrm == NULL) HLT_ERRLC(regex_line_no, regex_colu_no, "Reallocation failed?");
 
 
 	(*tstrm)[*tlen - 1].definition_name = NULL; //delineate
@@ -53,8 +53,15 @@ void add_token_to_tstream(struct lxc_token **tstrm, size_t *tlen, struct lxc_def
 }
 
 LexicToken * LexicTokensFromFile(char *file_name, LexicVocabulary *vocab) {
-	if (file_name == NULL || file_name[0] == '\0') HLTError("Token Stream File. Given empty file name?", regex_line_no, regex_colu_no);
-	if (vocab == NULL) HLTError("Token Stream File. Given NULL Vocab?", regex_line_no, regex_colu_no);
+	if (file_name == NULL || file_name[0] == '\0') {
+		HLT_WRN(HLT_MJRWRN, "Given empty file name?");
+		return NULL;
+	}
+
+	if (vocab == NULL) {
+		HLT_WRN(HLT_MJRWRN, "Given NULL Vocab?");
+		return NULL;
+	}
 
 	char *strm = ftostr(file_name);
 
@@ -66,8 +73,15 @@ LexicToken * LexicTokensFromFile(char *file_name, LexicVocabulary *vocab) {
 
 //Random TODO Idea: What if we made a regex tree, would it reduce this O(m*n) procedure down? Would it improve time complexity?
 LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
-	if (vocab == NULL) HLTError("Token Stream String. Given NULL Vocab?", regex_line_no, regex_colu_no);
-	if (stream == NULL) HLTError("Token Stream String. Given NULL stream?", regex_line_no, regex_colu_no);
+	if (stream == NULL) {
+		HLT_WRN(HLT_MJRWRN, "Given NULL stream?");
+		return NULL;
+	}
+
+	if (vocab == NULL) {
+		HLT_WRN(HLT_MJRWRN, "Given NULL Vocab?");
+		return NULL;
+	}
 
 	regex_line_no = 1;
 	regex_colu_no = 1;
@@ -82,15 +96,12 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 	int lst_match = -1; //negative signifies no match
 	int lst_start = -1; //used to warn of dropped characters
 
-	if (warn_level == HLT_DEBUG) printf("Beginning token stream creation loop!\n");
+	HLT_WRN(HLT_DEBUG, "Beginning token stream creation loop!\n");
 	for (size_t i = 0; i < stlen; i++) {
 		//printf("at line %d, column %d\n", regex_line_no, regex_colu_no);
 		int sublen = i - nconsumed_ind + 1; //this means i is inclusive
 		if (sublen <= 0) continue; //don't support 0-string matches
-		if (sublen > 99) {
-			HLTWarn("Token Stream String. Reached 99 token limit before consumption.", regex_line_no, regex_colu_no, HLT_MJRWRN);
-			break; //don't panic tho, just return what we got
-		}
+		if (sublen > 99) HLT_ERRLC(regex_line_no, regex_colu_no, "Regex doesn't support tokens longer than 99");
 
 		strncpy(substring, stream+nconsumed_ind, sublen);
 		substring[sublen] = '\0';
@@ -98,7 +109,7 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 		int cur_match = match_within_vocabulary(vocab, substring);
 		int cur_start = nconsumed_ind;
 
-		if (warn_level == HLT_DEBUG) printf("We found: '%d' match in vocab (attempt 1)\n", cur_match);
+		HLT_WRN(HLT_DEBUG, "We found: '%d' match in vocab (attempt 1)\n", cur_match);
 		if (cur_match < 0 && sublen > 1) { //need to drop characters at front?
 			for (int j = 1; j < sublen; j++) { //just don't drop last character
 				char *subsub = substring + j;
@@ -108,7 +119,7 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 					break;
 				}
 			}
-			if (warn_level == HLT_DEBUG) printf("So it appears we needed to drop characters: now have '%d' match in vocab\n", cur_match);
+			HLT_WRN(HLT_DEBUG, "So it appears we needed to drop characters: now have '%d' match in vocab\n", cur_match);
 		}
 
 		if (cur_match >= 0) { //did we match here?
@@ -127,14 +138,14 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 				lst_match = cur_match;
 				lst_start = cur_start;
 			} else { //eof, consume regardless
-				if (cur_start != (int)nconsumed_ind) HLTWarn("Dropping unmatched characters at front of unconsumed character sequence! (EOF)", regex_line_no, regex_colu_no, HLT_VERBSE);
+				if (cur_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Dropping unmatched characters at front of unconsumed character sequence! (EOF)");
 				
 				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
 				nconsumed_ind = i+1;
 			}
 		} else if (lst_match >= 0) { //did we match before this new character?
-			if (lst_start != (int)nconsumed_ind) HLTWarn("Dropping unmatched characters at front of unconsumed character sequence!", regex_line_no, regex_colu_no, HLT_VERBSE);
-			if (sublen <= 1) HLTError("Token Stream String. How did we match a 0-length character? Fatal Error!", regex_line_no, regex_colu_no);
+			if (lst_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Dropping unmatched characters at front of unconsumed character sequence!");
+			if (sublen <= 1) HLT_ERRLC(regex_line_no, regex_colu_no, "How did we match a 0-length character? Fatal Error!");
 
 			regex_colu_no -= 1; //since we don't use this "new" char
 			substring[sublen-1] = '\0'; //don't "match" the new character

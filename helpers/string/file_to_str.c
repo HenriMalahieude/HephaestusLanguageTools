@@ -12,7 +12,7 @@ char* ftostr(char *file_name) {
 	int succ = fseek(read_from, 0, SEEK_END); //Move to eof
 	if (succ != 0) {
 		fclose(read_from);
-		HLT_AWRN("Couldn't seek file to the end?", HLT_MJRWRN);
+		HLT_AWRN(HLT_MJRWRN, "Couldn't seek file to the end?");
 		return NULL;
 	}
 
@@ -20,14 +20,14 @@ char* ftostr(char *file_name) {
 	rewind(read_from); //Back to top
 	if (file_size <= 0) {
 		fclose(read_from);
-		HLT_AWRN("File is empty, meaningless to load.", HLT_STDWRN);
+		HLT_AWRN(HLT_STDWRN, "File is empty, meaningless to load.");
 		return NULL;
 	}
 	
 	char *strm = (char*)calloc(file_size+1, sizeof(char));
 	if (strm == NULL) {
 		fclose(read_from);
-		HLT_AWRN("Failed to allocate memory for file?", HLT_MJRWRN);
+		HLT_AWRN(HLT_MJRWRN, "Failed to allocate memory for file?");
 		return NULL;
 	}
 
@@ -35,7 +35,7 @@ char* ftostr(char *file_name) {
 	if (succ <= 1) {
 		fclose(read_from);
 		free(strm);
-		HLT_AWRN("Failed to read entire file into buffer?", HLT_MJRWRN);
+		HLT_AWRN(HLT_MJRWRN, "Failed to read entire file into buffer?");
 		return NULL;
 	}
 	
