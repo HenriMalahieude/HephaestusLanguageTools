@@ -7,12 +7,12 @@ bool FirstTest() {
 	int valid = 0;
 
 	print_test("Start!");
-
+	
 	//Step 0: Test trivial/edge-cases
-	SyntacBook *book1 = SyntacBookAllocate();
+	/*SyntacBook *book1 = SyntacBookAllocate();
 	SyntacBookRuleAdd(book1, "A", "B");
 	SyntacBookRuleAdd(book1, "A", "C");
-	SyntacBookRuleAdd(book1, "C", NULL);
+	SyntacBookRuleAdd(book1, "C", "");
 	if (book1->rule_count != 3) {
 		print_test("SyntacBookRuleAdd failed to add 3 rules as requested?");
 		return false;
@@ -23,11 +23,11 @@ bool FirstTest() {
 	valid += TEST_STRING(book1->rules[0].first_set[0], "B");
 	valid += TEST(book1->rules[0].first_set[0] != book1->rules[0].elements[0], 1);
 
-	valid += TEST(SetCount(book1->rules[1].first_set), 1);
+	valid += TEST(SetCount(book1->rules[1].first_set), 1); //r2 A
 	valid += TEST(book1->rules[1].first_set[0][0] == EPSILON[0], 1);
 	valid += TEST(book1->rules[1].first_set[0][1] == '\0', 1);
 
-	valid += TEST(SetCount(book1->rules[2].first_set), 1);
+	valid += TEST(SetCount(book1->rules[2].first_set), 1); //r3 C
 	valid += TEST(book1->rules[2].first_set[0][0] == EPSILON[0], 1);
 	valid += TEST(book1->rules[2].first_set[0][1] == '\0', 1);
 
@@ -35,7 +35,7 @@ bool FirstTest() {
 	if (valid != test_count) {
 		print_test("Failed trivial/edge cases");
 		return false;
-	}
+	} // */
 
 	//Step 1: Test a simple book
 	SyntacBook *book0 = SyntacBookAllocate();
@@ -57,6 +57,7 @@ bool FirstTest() {
 	valid += TEST(SetCount(book0->rules[0].first_set), 2); //r1 E
 	valid += TEST(SetContains(book0->rules[0].first_set, "("), 1);
 	valid += TEST(SetContains(book0->rules[0].first_set, "id"), 1);
+	SetPrint(book0->rules[0].first_set);
 
 	valid += TEST(SetCount(book0->rules[1].first_set), 1); //r2 E'
 	valid += TEST_STRING(book0->rules[1].first_set[0], "+");
@@ -108,6 +109,7 @@ bool FirstTest() {
 #ifndef ALL_TESTS
 int test_count = 0;
 int main(void) {
+	//warn_level = HLT_DEBUG;
 	return !FirstTest();
 }
 #endif

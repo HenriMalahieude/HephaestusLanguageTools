@@ -72,6 +72,13 @@ int SetCount(char **set) {
 	return cnt;
 }
 
+void SetPrint(char **set) {
+	if (set == NULL) return;
+
+	for (int i = 0; set[i] != NULL; i++) printf("'%s'\t", set[i]);
+	printf("\n");
+}
+
 void SetFree(char **set) {
 	if (set == NULL) return;
 

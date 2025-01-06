@@ -62,7 +62,7 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 
 	if (right == NULL) {
 		HLT_WRN("Supplied 'right' of rule was null/empty?", HLT_MJRWRN);
-		HLT_WRN("If attempting an epsilon/empty rule, please pass empty string instead", HLT_STDWRN);
+		HLT_WRN("If attempting an epsilon/empty rule, please pass empty string instead.", HLT_STDWRN);
 		return;
 	}
 
@@ -71,8 +71,9 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	for (size_t i = 0; i < strlen(right); i++) if (right[i] == RIGHT_DELIM) elm_cnt++;
 
 	//Initialize the rule + name
-	struct stc_rule rule; 
+	struct stc_rule rule = {0}; 
 	rule.name = NULL;
+	rule.elements = NULL;
 	rule.first_set = NULL;
 	rule.follow_set = NULL;
 	if (!trim(left, &rule.name)) {
@@ -88,23 +89,28 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	size_t nconsumeIdx = 0;
 	char substr[SUBSTR_SZ];
 	for (size_t i = 1; i <= strlen(right); i++) {
-		if (right[i] == RIGHT_DELIM || right[i] == '\0') { //delimiter or end
-			int len = (i - nconsumeIdx); //non-inclusive
+		int len = 0;
+		if (right[i] == RIGHT_DELIM) { //delimiter or end
+			len = (i - nconsumeIdx); //non-inclusive
 			if (len-1 <= 0) {
-				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_VERBSE);
+				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_STDWRN);
 				continue;
 			}
-
-			strncpy(substr, right + nconsumeIdx, len);
-			substr[len] = '\0';
-			if (!trim(substr, &rule.elements[elm_i])) {
-				HLT_WRN("Element was only whitespace? Skipping.", HLT_VERBSE);
-				//strcpy(rule.elements[elm_i], substr);
-			}
-
-			elm_i += 1;
-			nconsumeIdx = i+1; //skip delim
+		} else if (right[i] == '\0') {
+			len = (i - nconsumeIdx);
 		}
+
+		if (len <= 0) continue;
+
+		strncpy(substr, right + nconsumeIdx, len);
+		substr[len] = '\0';
+		if (!trim(substr, &rule.elements[elm_i])) {
+			HLT_WRN("Element was only whitespace? Skipping.", HLT_VERBSE);
+			//strcpy(rule.elements[elm_i], substr);
+		}
+
+		elm_i += 1;
+		nconsumeIdx = i+1; //skip delim
 	}
 
 	if (elm_i < elm_cnt) {

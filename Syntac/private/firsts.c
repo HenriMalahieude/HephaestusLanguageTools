@@ -9,7 +9,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 	if (book == NULL) HLT_ERR("Book supplied is null?");
 	if (rule == NULL) HLT_ERR("Rule supplied is null?");
 
-	if (firsts_recursion_limit >= FIRSTS_RCR_LIM) firsts_recursion_limit++;
+	if (firsts_recursion_limit < FIRSTS_RCR_LIM) firsts_recursion_limit++;
 	else HLT_ERR("Recursion limit hit on recursive function!\nTODO: Make this cmd line arg!");
 
 	char output[100];
@@ -35,7 +35,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 		for (int j = 0; j < book->rule_count; j++) {
 			if (strcmp(book->rules[j].name, elm) != 0) continue;
 			if (i == j) continue; //loops into same rule are ignored (a -> a b a c, only b & c considered)
-
+			
 			firsts_of_rule(book, &book->rules[j]);
 			if (book->rules[j].first_set == NULL) continue; //failed to actually generate a first set, so we can't acquire it ourselves
 			
@@ -63,6 +63,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 		break;
 	}
 
+	if (warn_level == HLT_DEBUG) printf("Firsts of %s exited with %d firsts\n", rule->name, SetCount(rule->first_set));
 	//NOTE: Could be NULL because it's waiting on other rules?
 }
 

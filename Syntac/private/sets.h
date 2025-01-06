@@ -20,6 +20,9 @@ char ** SetUnion(char **set1, char **set2);
 //Amount of elements in set
 int SetCount(char **set);
 
+//Output the elements in the set
+void SetPrint(char **set);
+
 //Delete and reset set (free the memory too)
 void SetFree(char **set);
 
