@@ -4,12 +4,12 @@
 
 SyntacTreeNode * SyntacTreeFromTokens(void *stream, Syntac *book) {
 	if (stream == NULL) {
-		HLT_WRN("Token stream provided is empty?", HLT_MJRWRN);
+		HLT_WRN(HLT_MJRWRN, "Token stream provided is empty?");
 		return NULL;
 	}
 
 	if (book == NULL) {
-		HLT_WRN("Rule Book null?", HLT_MJRWRN);
+		HLT_WRN(HLT_MJRWRN, "Rule Book null?");
 		return NULL;
 	}
 
@@ -30,12 +30,12 @@ SyntacTreeNode * SyntacTreeFromTokens(void *stream, Syntac *book) {
 
 SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
 	if (stream == NULL || *stream == NULL) {
-		HLT_WRN("String stream provided is empty?", HLT_MJRWRN);
+		HLT_WRN(HLT_MJRWRN, "String stream provided is empty?");
 		return NULL;
 	}
 
 	if (book == NULL) {
-		HLT_WRN("Rule Book null?", HLT_MJRWRN);
+		HLT_WRN(HLT_MJRWRN, "Rule Book null?");
 		return NULL;
 	}
 
@@ -56,7 +56,7 @@ SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
 
 void SyntacTreeFree(SyntacTreeNode *tree) {
 	if (tree == NULL) {
-		HLT_WRN("Supplied tree pointer was null?", HLT_MJRWRN);
+		HLT_WRN(HLT_MJRWRN, "Supplied tree pointer was null?");
 		return;
 	}
 

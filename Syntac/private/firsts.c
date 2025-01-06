@@ -12,9 +12,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 	if (firsts_recursion_limit < FIRSTS_RCR_LIM) firsts_recursion_limit++;
 	else HLT_ERR("Recursion limit hit on recursive function!\nTODO: Make this cmd line arg!");
 
-	char output[100];
-	snprintf(output, 100, "Calculating the first set of '%s'", rule->name);
-	HLT_WRN(output, HLT_VERBSE);
+	HLT_WRN(HLT_VERBSE, "Calculating the first set of '%s'", rule->name);
 	
 	//epsilon/null/empty rules
 	if (rule->elements == NULL || rule->elements[0] == NULL) {
@@ -63,7 +61,7 @@ void firsts_of_rule(struct stc_book *book, struct stc_rule *rule) {
 		break;
 	}
 
-	if (warn_level == HLT_DEBUG) printf("Firsts of %s exited with %d firsts\n", rule->name, SetCount(rule->first_set));
+	HLT_WRN(HLT_DEBUG, "Firsts of %s exited with %d firsts\n", rule->name, SetCount(rule->first_set));
 	//NOTE: Could be NULL because it's waiting on other rules?
 }
 
@@ -89,9 +87,7 @@ void firsts_of_book(struct stc_book *book) { //local use, all asserts/ifs should
 	bool failed = false;
 	for (int i = 0; i < book->rule_count; i++) {
 		if (book->rules[i].first_set == NULL) {
-			char errmsg[100];
-			snprintf(errmsg, 100, "Couldn't generate the first set of rule '%s'?", book->rules[i].name);
-			HLT_WRN(errmsg, HLT_MJRWRN);
+			HLT_WRN(HLT_MJRWRN, "Couldn't generate the first set of rule '%s'?", book->rules[i].name);
 			failed = true;
 		}
 	}
