@@ -15,4 +15,4 @@ STATEMENT -> WORD
 STATEMENT -> NULL
 
  Epsilon/Empty rule
-NULL -> 
+NULL-> 

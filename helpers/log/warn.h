@@ -1,50 +1,54 @@
 #ifndef __HEPH_INTERNAL_WARN__
 #define __HEPH_INTERNAL_WARN__
 #include <stdio.h>
+#include <stdarg.h>
 
 #define HLT_ERR_SYMB "[!] "
 #define HLT_WRN_SYMB "[?] "
-#define HLT_OUTFILE printf("%s", __FILE__)
-#define HLT_OUTFUNC printf("%s", __func__)
+#define HLT_OUTFILE fprintf(stderr, "%s", __FILE__)
+#define HLT_OUTFUNC fprintf(stderr, "%s", __func__)
 
 //Internal: Log All
 #define HLT_LOGLOC \
+	fprintf(stderr, "["); \
 	HLT_OUTFILE; \
-	printf(" ("); \
+	fprintf(stderr, "/"); \
 	HLT_OUTFUNC; \
-	printf(") > ")
+	printf("]")
 
 //Warn: All
-#define HLT_AWRN(msg, type) {\
-	if ((int)type <= (int)warn_level) { \
-		printf(HLT_WRN_SYMB); \
-		HLT_LOGLOC;} \
-	HLTWarn(msg, -1, -1, type);}
+#define HLT_AWRN(type, format, ...) {\
+	if ((int)type <= (warn_level)) { \
+		fprintf(stderr, HLT_WRN_SYMB); \
+		HLT_LOGLOC; \
+		fprintf(stderr, "> "); } \
+	HLTWarn(-1, -1, type, format __VA_OPT__(,) __VA_ARGS__); }
 
 //Warn: Function
-#define HLT_WRNLC(msg, line, col, type) {\
+#define HLT_WRNLC(line, col, type, format, ...) {\
 	if ((int)type <= (int)warn_level){ \
-		printf(HLT_WRN_SYMB); \
+		fprintf(stderr, HLT_WRN_SYMB); \
 		HLT_OUTFUNC; \
-		printf(" > ");} \
-	HLTWarn(msg, line, col, type);}
+		fprintf(stderr, "> ");} \
+	HLTWarn(line, col, type, format __VA_OPT__(,) __VA_ARGS__);}
 
-#define HLT_WRN(msg, type) HLT_WRNLC(msg, -1, -1, type)
+#define HLT_WRN(type, format, ...) HLT_WRNLC(-1, -1, type, format __VA_OPT__(,) __VA_ARGS__)
 
 //Error: All
-#define HLT_AERR(msg) {\
-	printf(HLT_ERR_SYMB); \
+#define HLT_AERR(format, ...) {\
+	fprintf(stderr, HLT_ERR_SYMB); \
 	HLT_LOGLOC; \
-	HLTError(msg, -1, -1);}
+	fprintf(stderr, "> "); \
+	HLTError(-1, -1, format __VA_OPT__(,) __VA_ARGS__);}
 
 //Error: Function
-#define HLT_ERRLC(msg, line, col) {\
-	printf(HLT_ERR_SYMB); \
+#define HLT_ERRLC(line, col, format, ...) {\
+	fprintf(stderr, HLT_ERR_SYMB); \
 	HLT_OUTFUNC; \
-	printf(" > "); \
-	HLTError(msg, line, col);}
+	fprintf(stderr, "> "); \
+	HLTError(line, col, format __VA_OPT__(,) __VA_ARGS__);}
 
-#define HLT_ERR(msg) HLT_ERRLC(msg, -1, -1)
+#define HLT_ERR(format, ...) HLT_ERRLC(-1, -1, format __VA_OPT__(,) __VA_ARGS__)
 
 enum hlt_warn_type {
 	HLT_SILENT = 0,
@@ -55,7 +59,7 @@ enum hlt_warn_type {
 };
 
 extern enum hlt_warn_type warn_level; //warnings lower prio or greater value (x > (int)warn_level) ignored
-void HLTError(char *msg, int line, int col);
-void HLTWarn(char *msg, int line, int col, enum hlt_warn_type type);
+void HLTError(int line, int col, const char *format, ...);
+void HLTWarn(int line, int col, enum hlt_warn_type type, const char *format, ...);
 
 #endif

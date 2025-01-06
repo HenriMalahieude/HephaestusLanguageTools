@@ -90,15 +90,7 @@ void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
 	char substr[SUBSTR_SZ];
 	for (size_t i = 1; i <= strlen(right); i++) {
 		int len = 0;
-		if (right[i] == RIGHT_DELIM) { //delimiter or end
-			len = (i - nconsumeIdx); //non-inclusive
-			if (len-1 <= 0) {
-				HLT_WRN("Empty element inside of rule's right production? Skipping.", HLT_STDWRN);
-				continue;
-			}
-		} else if (right[i] == '\0') {
-			len = (i - nconsumeIdx);
-		}
+		if (right[i] == RIGHT_DELIM || right[i] == '\0') len = (i - nconsumeIdx); //non-inclusive
 
 		if (len <= 0) continue;
 

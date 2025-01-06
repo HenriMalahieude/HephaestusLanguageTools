@@ -1,0 +1,17 @@
+TOP
+
+Stolen from geeksforgeeks
+S -> A:C:B
+S -> C:b:b
+S -> B:a
+
+A -> d:a
+A -> B:C
+
+B -> g
+B -> 
+
+C -> h
+C -> 
+
+X -> S

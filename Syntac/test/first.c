@@ -9,7 +9,7 @@ bool FirstTest() {
 	print_test("Start!");
 	
 	//Step 0: Test trivial/edge-cases
-	/*SyntacBook *book1 = SyntacBookAllocate();
+	SyntacBook *book1 = SyntacBookAllocate();
 	SyntacBookRuleAdd(book1, "A", "B");
 	SyntacBookRuleAdd(book1, "A", "C");
 	SyntacBookRuleAdd(book1, "C", "");
@@ -37,7 +37,7 @@ bool FirstTest() {
 		return false;
 	} // */
 
-	//Step 1: Test a simple book
+	//Step 1: Test a simple book (from internet)
 	SyntacBook *book0 = SyntacBookAllocate();
 
 	SyntacBookRuleAdd(book0, "E", "T:E'");
@@ -57,7 +57,7 @@ bool FirstTest() {
 	valid += TEST(SetCount(book0->rules[0].first_set), 2); //r1 E
 	valid += TEST(SetContains(book0->rules[0].first_set, "("), 1);
 	valid += TEST(SetContains(book0->rules[0].first_set, "id"), 1);
-	SetPrint(book0->rules[0].first_set);
+	//SetPrint(book0->rules[0].first_set);
 
 	valid += TEST(SetCount(book0->rules[1].first_set), 1); //r2 E'
 	valid += TEST_STRING(book0->rules[1].first_set[0], "+");
@@ -87,19 +87,55 @@ bool FirstTest() {
 		print_test("Failed simple case");
 		return false;
 	}
-	
 
-	print_test("TODO");
-	/*SyntacBook *book = SyntacBookFromFile("../grammar.stc");
-	first_of_book(book); //Great news if it doesn't error out
+	//Step 2: Test File Grammar
+	SyntacBook *book = SyntacBookFromFile("../grammar.stc");
+	valid += TEST(book->rule_count, 9);
+
+	firsts_of_book(book);
 	
-	//Ensure no changed to the underlying rule structure
-	//TODO
+	valid += TEST(SetCount(book->rules[0].first_set), 1); //r1 func
+	valid += TEST_STRING(book->rules[0].first_set[0], "TYPE");
+
+	valid += TEST(SetCount(book->rules[1].first_set), 1); //r2 args
+	valid += TEST_STRING(book->rules[1].first_set[0], "TYPE");
+
+	valid += TEST(SetCount(book->rules[2].first_set), 1); //r3 args
+	//should be epsilon... don't really know how to test it properly
 	
-	//Check correctly generated first set of all of file
-	//TODO
+	valid += TEST(SetCount(book->rules[4].first_set), 2);
+	valid += TEST(SetContains(book->rules[4].first_set, "WORD"), 1);
+	//other one is epsilon
+
+	valid += TEST(SetCount(book->rules[8].first_set), 1);
+
+	SyntacBookFree(book); book = NULL;
+	if (valid != test_count) {
+		print_test("Failed file case");
+		return false;
+	}
+
+	//Step 3: Complicated File with many first tokens and some Epsilon tokens
+	SyntacBook *book3 = SyntacBookFromFile("../grammar2.stc");
+	valid += TEST(book3->rule_count, 10);
+
+	firsts_of_book(book3);
+
+	valid += TEST(SetCount(book3->rules[0].first_set), 4);
+	valid += TEST(SetContains(book3->rules[0].first_set, "d"), 1);
+	valid += TEST(SetContains(book3->rules[0].first_set, "g"), 1);
+	valid += TEST(SetContains(book3->rules[0].first_set, "h"), 1);
+	//epsilon is left
+
+	valid += TEST(SetCount(book3->rules[1].first_set), 2);
+	valid += TEST(SetContains(book3->rules[1].first_set, "h"), 1);
+	valid += TEST(SetContains(book3->rules[1].first_set, "b"), 1);
 	
-	// */
+	valid += TEST(SetCount(book3->rules[2].first_set), 2);
+	valid += TEST(SetContains(book3->rules[2].first_set, "g"), 1);
+	valid += TEST(SetContains(book3->rules[2].first_set, "a"), 1);
+
+	valid += TEST(SetCount(book3->rules[9].first_set), 6);
 
 	print_test("Finished!");
 
