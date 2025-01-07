@@ -9,6 +9,9 @@
 //Set contains string, yes or no
 bool SetContains(char **set, char *item);
 
+//Equivalency check (must be exact same)
+bool SetEquality(char **set1, char **set2);
+
 //Outputs succesful (and unique) additions to the set
 //If it's in the set before, it returns false
 //Makes a (malloc) copy of the item

@@ -5,10 +5,8 @@
 bool SetTest() {
 	test_count = 0;
 	int valid = 0;
-
-#ifdef VERBOSE
-	printf("[!] Set Test Start\n");
-#endif
+	
+	print_test("Start");
 
 	char **set = NULL;
 	
@@ -30,8 +28,10 @@ bool SetTest() {
 
 	//Contains things
 	valid += TEST(SetContains(set, "a"), 1);
+	valid += TEST(SetContains(set, ""), 0);
 	valid += TEST(SetContains(set, "b"), 1);
 	valid += TEST(SetContains(set, "Cc"), 1);
+	valid += TEST(SetContains(set, "item"), 0);
 	valid += TEST(SetContains(set, "cC"), 1);
 
 	//Investigate the internals
@@ -40,7 +40,7 @@ bool SetTest() {
 	valid += TEST_STRING(set[2], "cC");
 	valid += TEST_STRING(set[3], "Cc");
 	valid += TEST_NULL(set[4]); // */
-								
+	
 	if (test_count != valid) {
 #ifdef VERBOSE
 		printf("[/] Failed before checkpoint.\n");
@@ -53,7 +53,8 @@ bool SetTest() {
 
 	char **same_set = SetUnion(NULL, set);
 	valid += TEST(SetCount(same_set), 4);
-	SetFree(same_set);
+	valid += TEST(SetEquality(same_set, set), 1);
+	SetFree(same_set); same_set = NULL;
 
 	char **new_set = NULL;
 	SetAdd(&new_set, "d");
@@ -65,15 +66,27 @@ bool SetTest() {
 	valid += TEST(SetContains(union_set, "c"), 1);
 	valid += TEST(SetContains(union_set, "a"), 1);
 	valid += TEST(SetContains(union_set, "cC"), 1);
+
+	//Check Equality
+	valid += TEST(SetEquality(NULL, NULL), 1);
+	valid += TEST(SetEquality(union_set, new_set), 0);
+
+	char **right_set = NULL;
+	SetAdd(&right_set, "c");
+	SetAdd(&right_set, "d");
+	valid += TEST(SetCount(right_set), 2);
 	
+	valid += TEST(SetEquality(right_set, NULL), 0);
+	valid += TEST(SetEquality(NULL, new_set), 0);
+	valid += TEST(SetEquality(new_set, right_set), 1);
+	
+	SetFree(right_set); right_set = NULL;
 	SetFree(new_set); new_set = NULL;
 	SetFree(union_set); union_set = NULL;
 
 bottom:
 	SetFree(set); set = NULL;
-#ifdef VERBOSE
-	printf("[!] Set Test Finished\n");
-#endif
+	print_test("Finished");
 
 	return test_count == valid;
 }

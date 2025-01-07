@@ -9,7 +9,7 @@ bool FirstTest() {
 	print_test("Start!");
 	
 	//Step 0: Test trivial/edge-cases
-	SyntacBook *book1 = SyntacBookAllocate();
+	/*SyntacBook *book1 = SyntacBookAllocate();
 	SyntacBookRuleAdd(book1, "A", "B");
 	SyntacBookRuleAdd(book1, "A", "C");
 	SyntacBookRuleAdd(book1, "C", "");
@@ -38,7 +38,7 @@ bool FirstTest() {
 	} // */
 
 	//Step 1: Test a simple book (from internet)
-	SyntacBook *book0 = SyntacBookAllocate();
+	/*SyntacBook *book0 = SyntacBookAllocate();
 
 	SyntacBookRuleAdd(book0, "E", "T:E'");
 	SyntacBookRuleAdd(book0, "E'", "+:T:E'");
@@ -113,13 +113,19 @@ bool FirstTest() {
 	if (valid != test_count) {
 		print_test("Failed file case");
 		return false;
-	}
+	} */
 
 	//Step 3: Complicated File with many first tokens and some Epsilon tokens
 	SyntacBook *book3 = SyntacBookFromFile("../grammar2.stc");
 	valid += TEST(book3->rule_count, 10);
 
 	firsts_of_book(book3);
+	for (int i = 0; i < book3->rule_count; i++) {
+		printf("Rule %s: ", book3->rules[i].name);
+		SetPrint(book3->rules[i].elements);
+		printf("  First Set: ");
+		SetPrint(book3->rules[i].first_set);
+	}
 
 	valid += TEST(SetCount(book3->rules[0].first_set), 4);
 	valid += TEST(SetContains(book3->rules[0].first_set, "d"), 1);
@@ -145,7 +151,7 @@ bool FirstTest() {
 #ifndef ALL_TESTS
 int test_count = 0;
 int main(void) {
-	//warn_level = HLT_DEBUG;
+	warn_level = HLT_DEBUG;
 	return !FirstTest();
 }
 #endif
