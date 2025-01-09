@@ -6,6 +6,7 @@
 
 int *tracker = NULL;
 int firsts_loop_limit = 0;
+int rcr = 0;
 
 void firsts_of_rule(struct stc_book *book, int rule_index) {
 	if (book == NULL) HLT_ERR("Book supplied is null?");
@@ -17,12 +18,13 @@ void firsts_of_rule(struct stc_book *book, int rule_index) {
 	if (tracker[rule_index] >= firsts_loop_limit) return; //already calculated for this loop cycle
 	tracker[rule_index] = firsts_loop_limit; //about to calculate it for this loop cycle
 
-	HLT_WRN(HLT_DEBUG, "Calculating the first set of %s", rule->name);
-	
+	rcr++;
 	//epsilon/null/empty rules
 	if (rule->elements == NULL || rule->elements[0] == NULL) {
 		SetAdd(&rule->first_set, EPSILON);
-		HLT_WRN(HLT_DEBUG, "Firsts of %s exited with epsilon first", rule->name);
+		for (int i = 0; i < rcr; i++) printf("\t");
+		printf("Firsts: %s => epsilon\n", rule->name);
+		rcr--;
 		return;
 	}
 	
@@ -38,7 +40,7 @@ void firsts_of_rule(struct stc_book *book, int rule_index) {
 		char **new_first = NULL;
 		for (int j = 0; j < book->rule_count; j++) {
 			if (strcmp(book->rules[j].name, elm) != 0) continue;
-			if (i == j) continue; //loops into same rule are ignored (a -> a b a c, only b & c considered)
+			if (rule_index == j) continue; //loops into same rule are ignored (a -> a b a c, only b & c considered)
 			
 			firsts_of_rule(book, j);
 			if (book->rules[j].first_set == NULL) continue; //failed to actually generate a first set, so we can't acquire it ourselves
@@ -50,27 +52,38 @@ void firsts_of_rule(struct stc_book *book, int rule_index) {
 
 			//Acquire the first of this rule, add it to ourselves
 			char **lcl_first = SetUnion(new_first, book->rules[j].first_set);
+			
+			for (int k = 0; k < rcr; k++) printf("\t");
+			printf("Found: ");
+			SetPrint(new_first);
+			
 			if (new_first != NULL) SetFree(new_first);
 			new_first = lcl_first;
 		}
+		for (int k = 0; k < rcr; k++) printf("\t");
+		printf("Acquired firsts for elm %s: ", elm);
+		SetPrint(new_first);
 	
 		if (new_first != NULL) {
-			printf("\t\tAdding to firsts! Disallow epsilon add except at end!\n");
-			for (int i = 0; new_first[i] != NULL; i++) {
-				if (strcmp(new_first[i], EPSILON) == 0) {
-					printf("\t\t\tThere was an epsilon!\n");
+			for (int j = 0; new_first[j] != NULL; j++) {
+				if (strcmp(new_first[j], EPSILON) == 0) {
 					if (rule->elements[i+1] == NULL) {
-						printf("\t\t\t\tAdded it anyways!\n");
 						SetAdd(&rule->first_set, EPSILON); //add it if no finality
 					}
-				} else SetAdd(&rule->first_set, new_first[i]);
+				} else SetAdd(&rule->first_set, new_first[j]);
 			}
-
+			
+			for (int k = 0; k < rcr; k++) printf("\t");
+			printf("The new first set of %s is: ", rule->name);
+			SetPrint(rule->first_set);
 			SetFree(new_first); new_first = NULL;
 		}
 	}
 
-	HLT_WRN(HLT_DEBUG, "Firsts of %s exited with %d firsts", rule->name, SetCount(rule->first_set));
+	for (int i = 0; i < rcr; i++) printf("\t");
+	printf("Firsts %s => ", rule->name);
+	SetPrint(rule->first_set);
+	rcr--;
 	//NOTE: Could be NULL because it's waiting on other rules
 }
 
@@ -87,6 +100,7 @@ void firsts_of_book(struct stc_book *book) { //local use, all asserts/ifs should
 	
 	bool changed = true;
 	while (changed) {
+		printf("\n");
 		if (firsts_loop_limit < FIRSTS_CHG_LIM) firsts_loop_limit++;
 		else HLT_ERR("Recursion limit hit on changed status of first sets within grammar.\nTODO: Make this a cmd line arg");
 
