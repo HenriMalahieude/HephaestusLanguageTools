@@ -84,6 +84,25 @@ bool SetTest() {
 	SetFree(new_set); new_set = NULL;
 	SetFree(union_set); union_set = NULL;
 
+	//Check creation
+	char **variadic_set = SetCreate(5, "a", "b", "c", "dd", "eee");
+	valid += TEST(SetCount(variadic_set), 5);
+
+	valid += TEST(SetContains(variadic_set, "a"), 1);
+	valid += TEST(SetContains(variadic_set, "dd"), 1);
+	valid += TEST(SetContains(variadic_set, "e"), 0);
+
+	char **set_set = SetCreate(1, "bruh");
+	valid += TEST(SetCount(set_set), 1);
+	valid += TEST_STRING(set_set[0], "bruh");
+	valid += TEST(SetAdd(&set_set, "L"), 1);
+	valid += TEST(SetContains(set_set, "L"), 1);
+	valid += TEST(SetContains(set_set, "dd"), 0);
+	valid += TEST(SetEquality(set_set, variadic_set), 0);
+
+	SetFree(variadic_set); variadic_set = NULL;
+	SetFree(set_set); set_set = NULL;
+
 bottom:
 	SetFree(set); set = NULL;
 	print_test("Finished");

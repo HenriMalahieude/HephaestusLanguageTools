@@ -3,6 +3,22 @@
 #include <stdio.h>
 #include "sets.h"
 
+char ** SetCreate(int count, ...) {
+	if (count <= 0) return NULL;
+
+	va_list elms;
+	va_start(elms, count);
+
+	char ** set = NULL;
+
+	for (int i = 0; i < count; i++) {
+		SetAdd(&set, va_arg(elms, char *));
+	}
+
+	va_end(elms);
+	return set;
+}
+
 bool SetContains(char **set, char *item) {
 	if (set == NULL || item == NULL) return false;
 
