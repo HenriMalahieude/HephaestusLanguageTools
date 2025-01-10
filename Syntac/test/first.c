@@ -9,7 +9,7 @@ bool FirstTest() {
 	print_test("Start!");
 	
 	//Step 0: Test trivial/edge-cases
-	/*SyntacBook *book1 = SyntacBookAllocate();
+	SyntacBook *book1 = SyntacBookAllocate();
 	SyntacBookRuleAdd(book1, "A", "B");
 	SyntacBookRuleAdd(book1, "A", "C");
 	SyntacBookRuleAdd(book1, "C", "");
@@ -36,16 +36,56 @@ bool FirstTest() {
 		print_test("Failed trivial/edge cases");
 		return false;
 	} // */
+	
+	//Step 1.5: Simple grammar without epsilon rules
+	//	NOTE: This would not be a valid Top Down Grammar
+	book1 = SyntacBookAllocate();
+	SyntacBookRuleAdd(book1, "E", "E:+:T");
+	SyntacBookRuleAdd(book1, "E", "E:-:T");
+	SyntacBookRuleAdd(book1, "E", "T");
+	SyntacBookRuleAdd(book1, "T", "T:*:F");
+	SyntacBookRuleAdd(book1, "T", "T:/:F");
+	SyntacBookRuleAdd(book1, "T", "F");
+	SyntacBookRuleAdd(book1, "F", "(:E:)");
+	SyntacBookRuleAdd(book1, "F", "id");
+	
+	firsts_of_book(book1);
+	valid += TEST(SetCount(book1->rules[7].first_set), 1);
+	valid += TEST_STRING(book1->rules[7].first_set[0], "id");
+
+	valid += TEST(SetCount(book1->rules[6].first_set), 1);
+	valid += TEST_STRING(book1->rules[6].first_set[0], "(");
+
+	char **rule_first = SetCreate(2, "(", "id");
+	valid += TEST(SetCount(book1->rules[5].first_set), 2);
+	valid += TEST(SetEquality(book1->rules[5].first_set, rule_first), 1);
+	//SetFree(rule_first); rule_first = NULL;
+
+	valid += TEST(SetEquality(book1->rules[4].first_set, rule_first), 1);
+
+	valid += TEST(SetEquality(book1->rules[3].first_set, rule_first), 1);
+
+	valid += TEST(SetEquality(book1->rules[2].first_set, rule_first), 1);
+
+	valid += TEST(SetEquality(book1->rules[1].first_set, rule_first), 1);
+
+	valid += TEST(SetEquality(book1->rules[0].first_set, rule_first), 1);
+
+	SetFree(rule_first); rule_first = NULL;
+	SyntacBookFree(book1); book1 = NULL;
+
+	//Step 1.5.5: More Complicated still without epsilon
+	//TODO: Hard to figure this out tbh
 
 	//Step 1: Test a simple book (from internet)
 	SyntacBook *book0 = SyntacBookAllocate();
 
 	SyntacBookRuleAdd(book0, "E", "T:E'");
 	SyntacBookRuleAdd(book0, "E'", "+:T:E'");
-	SyntacBookRuleAdd(book0, "E'", "?");
+	SyntacBookRuleAdd(book0, "E'", "");
 	SyntacBookRuleAdd(book0, "T", "F:T'");
 	SyntacBookRuleAdd(book0, "T'", "*:F:T'");
-	SyntacBookRuleAdd(book0, "T'", "?");
+	SyntacBookRuleAdd(book0, "T'", "");
 	SyntacBookRuleAdd(book0, "F", "(:E:)");
 	SyntacBookRuleAdd(book0, "F", "id");
 	if (book0->rule_count != 8) {
@@ -54,6 +94,13 @@ bool FirstTest() {
 	}
 
 	firsts_of_book(book0);
+	/*for (int i = 0; i < book0->rule_count; i++) {
+		printf("Rule %s: ", book0->rules[i].name);
+		SetPrint(book0->rules[i].elements);
+		printf("  First Set: ");
+		SetPrint(book0->rules[i].first_set);
+	} // */
+
 	valid += TEST(SetCount(book0->rules[0].first_set), 2); //r1 E
 	valid += TEST(SetContains(book0->rules[0].first_set, "("), 1);
 	valid += TEST(SetContains(book0->rules[0].first_set, "id"), 1);
@@ -63,7 +110,7 @@ bool FirstTest() {
 	valid += TEST_STRING(book0->rules[1].first_set[0], "+");
 
 	valid += TEST(SetCount(book0->rules[2].first_set), 1); //r3 E'
-	valid += TEST_STRING(book0->rules[2].first_set[0], "?");
+	//valid += TEST_STRING(book0->rules[2].first_set[0], "?");
 
 	valid += TEST(SetCount(book0->rules[3].first_set), 2); //r4 T
 	valid += TEST(SetContains(book0->rules[3].first_set, "("), 1);
@@ -74,7 +121,7 @@ bool FirstTest() {
 	valid += TEST_STRING(book0->rules[4].first_set[0], "*");
 
 	valid += TEST(SetCount(book0->rules[5].first_set), 1); //r6 T'
-	valid += TEST_STRING(book0->rules[5].first_set[0], "?");
+	//valid += TEST_STRING(book0->rules[5].first_set[0], "?");
 
 	valid += TEST(SetCount(book0->rules[6].first_set), 1); //r7 F
 	valid += TEST_STRING(book0->rules[6].first_set[0], "(");
@@ -89,7 +136,7 @@ bool FirstTest() {
 	}
 
 	//Step 2: Test File Grammar
-	/*SyntacBook *book = SyntacBookFromFile("../grammar.stc");
+	SyntacBook *book = SyntacBookFromFile("../grammar.stc");
 	valid += TEST(book->rule_count, 9);
 
 	firsts_of_book(book);
@@ -116,16 +163,16 @@ bool FirstTest() {
 	} // */
 
 	//Step 3: Complicated File with many first tokens and some Epsilon tokens
-	/*SyntacBook *book3 = SyntacBookFromFile("../grammar2.stc");
+	SyntacBook *book3 = SyntacBookFromFile("../grammar2.stc");
 	valid += TEST(book3->rule_count, 10);
 
 	firsts_of_book(book3);
-	for (int i = 0; i < book3->rule_count; i++) {
+	/*for (int i = 0; i < book3->rule_count; i++) {
 		printf("Rule %s: ", book3->rules[i].name);
 		SetPrint(book3->rules[i].elements);
 		printf("  First Set: ");
 		SetPrint(book3->rules[i].first_set);
-	}
+	} // */
 
 	char **rule0 = SetCreate(4, "d", "g", "h", EPSILON);
 	valid += TEST(SetCount(book3->rules[0].first_set), 4);
@@ -163,6 +210,7 @@ bool FirstTest() {
 	char **rule9 = SetCreate(6, "d", "g", "h", "b", "a", EPSILON);
 	valid += TEST(SetEquality(book3->rules[9].first_set, rule9), 1); // */
 
+	SyntacBookFree(book3); book3 = NULL;
 	print_test("Finished!");
 
 	return valid == test_count;
@@ -171,7 +219,7 @@ bool FirstTest() {
 #ifndef ALL_TESTS
 int test_count = 0;
 int main(void) {
-	warn_level = HLT_DEBUG;
+	//warn_level = HLT_DEBUG;
 	return !FirstTest();
 }
 #endif

@@ -6,7 +6,6 @@
 
 int *tracker = NULL;
 int firsts_loop_limit = 0;
-int rcr = 0;
 
 void firsts_of_rule(struct stc_book *book, int rule_index) {
 	if (book == NULL) HLT_ERR("Book supplied is null?");
@@ -18,13 +17,9 @@ void firsts_of_rule(struct stc_book *book, int rule_index) {
 	if (tracker[rule_index] >= firsts_loop_limit) return; //already calculated for this loop cycle
 	tracker[rule_index] = firsts_loop_limit; //about to calculate it for this loop cycle
 
-	rcr++;
 	//epsilon/null/empty rules
 	if (rule->elements == NULL || rule->elements[0] == NULL) {
 		SetAdd(&rule->first_set, EPSILON);
-		for (int i = 0; i < rcr; i++) printf("\t");
-		printf("Firsts: %s => epsilon\n", rule->name);
-		rcr--;
 		return;
 	}
 	
@@ -53,54 +48,40 @@ void firsts_of_rule(struct stc_book *book, int rule_index) {
 			//Acquire the first of this rule, add it to ourselves
 			char **lcl_first = SetUnion(new_first, book->rules[j].first_set);
 			
-			for (int k = 0; k < rcr; k++) printf("\t");
-			printf("Found: ");
-			SetPrint(new_first);
-			
 			if (new_first != NULL) SetFree(new_first);
 			new_first = lcl_first;
 		}
-		for (int k = 0; k < rcr; k++) printf("\t");
-		printf("Acquired firsts for elm %s: ", elm);
-		SetPrint(new_first);
-	
+		
+		bool done = true;
 		if (new_first != NULL) {
 			for (int j = 0; new_first[j] != NULL; j++) {
 				if (strcmp(new_first[j], EPSILON) == 0) {
+					done = false;
 					if (rule->elements[i+1] == NULL) {
 						SetAdd(&rule->first_set, EPSILON); //add it if no finality
 					}
 				} else SetAdd(&rule->first_set, new_first[j]);
 			}
 			
-			for (int k = 0; k < rcr; k++) printf("\t");
-			printf("The new first set of %s is: ", rule->name);
-			SetPrint(rule->first_set);
 			SetFree(new_first); new_first = NULL;
 		}
+
+		if (done) break;
 	}
 
-	for (int i = 0; i < rcr; i++) printf("\t");
-	printf("Firsts %s => ", rule->name);
-	SetPrint(rule->first_set);
-	rcr--;
 	//NOTE: Could be NULL because it's waiting on other rules
 }
 
 void firsts_of_book(struct stc_book *book) { //local use, all asserts/ifs should error
 	if (book == NULL) HLT_ERR("Book supplied is null?");
 
-	HLT_WRN(HLT_DEBUG, "Top of Recursive call stack for Firsts!!!!!!");
+	HLT_WRN(HLT_DEBUG, "Calculating firsts of this book!");
 
-	if (tracker != NULL) {
-		free(tracker); tracker = NULL;
-	}
-
+	if (tracker != NULL) HLT_AERR("Failed to unallocate the tracker array properly?");
 	tracker = calloc(book->rule_count, sizeof(int)); //calloc sets all to zero
 	
 	bool changed = true;
 	while (changed) {
-		printf("\n");
 		if (firsts_loop_limit < FIRSTS_CHG_LIM) firsts_loop_limit++;
 		else HLT_ERR("Recursion limit hit on changed status of first sets within grammar.\nTODO: Make this a cmd line arg");
 
