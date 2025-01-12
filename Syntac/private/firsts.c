@@ -103,7 +103,7 @@ void firsts_of_book(struct stc_book *book) { //local use, all asserts/ifs should
 		}
 	}
 	
-	//TODO: Some wait to control this failed signal
+	//TODO: Some way to control this failed signal
 	if (failed) HLT_ERR("Some first sets were not generated, not told to ignore.");
 
 	firsts_loop_limit = 0;

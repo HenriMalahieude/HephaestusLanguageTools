@@ -7,9 +7,12 @@
 // separator for the right production of rules
 #define RIGHT_DELIM ':'
 
-//Used for firsts and follows (empty)
+//Used for firsts (empty string)
 //Should be impossible to get this through as a "name" or "elements[i]" of stc_rule
 #define EPSILON "\1" 
+
+//Used for follows (end of string)
+#define ENDMRKR "\2"
 
 //Limitations
 #define FIRSTS_CHG_LIM 1000
@@ -18,13 +21,13 @@
 //Rule Definition
 // left -> right 
 // a -> b : c:xx :
-// which is [ 'a' consumes 'b' 'c' 'xx' ('bcxx') ]
+// which is [ 'a' consumes 'bcxx' ]
 struct stc_rule {
 	char *name; //also the left part of the rule
 	char **elements; //also the right part of the rule (null-terminated)
 					 
 	char **first_set; // NULL-Terminated
-	char **follow_set;
+	char **follow_set; //diddo
 };
 
 //Parsing Tables
