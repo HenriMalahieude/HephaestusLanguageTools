@@ -60,4 +60,19 @@ static bool TEST_NULL(void *input) {
 	return val;
 }
 
+static bool TEST_SET(char **input, char **shouldbe) {
+	bool val = SetEquality(input, shouldbe);
+#ifndef VERBOSE
+	if (!val) printf("[X] %s Test %d Fail: Sets not equal!\n", TEST_NAME, test_count);
+#else
+	printf("[?] %s Test %d: ", TEST_NAME, test_count);
+	if (!val) {
+		printf("[X]\n\tExpected: "); SetPrint(shouldbe);
+		printf("\tAcquired: "); SetPrint(input);
+	} else printf("[+]\n");
+#endif
+	test_count++;
+	return val;
+}
+
 #endif
