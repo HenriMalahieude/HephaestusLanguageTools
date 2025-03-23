@@ -109,7 +109,7 @@ LexicVocabulary * LexicVocabularyFromString(char *stream) {
 			if (!trim(substr, &nme)) HLT_ERRLC(regex_line_no, regex_colu_no, "Empty Token Name.");
 			nconsumed_ind = i+1;
 
-			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_DEBUG, "name found: %s\n", nme);	
+			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Token Name found: %s", nme);	
 		} else if (stream[i] == '\n' || i >= slen-1) { //new line or eof
 			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_DEBUG, "Found Definition.");
 
@@ -121,10 +121,13 @@ LexicVocabulary * LexicVocabularyFromString(char *stream) {
 			if (sublen >= 100) HLT_ERRLC(regex_line_no, regex_colu_no, "Lexic does not support definitions longer than 99 characters!");
 			strncpy(substr, stream+nconsumed_ind, sublen);
 			substr[sublen] = '\0';
+
 			struct lxc_definition dd = {.name = nme, .regex = NULL};
 			if (!trim(substr, &dd.regex)) HLT_ERRLC(regex_line_no, regex_colu_no,"Empty Token Definition.");
 			if (!RegexValidate(dd.regex)) HLT_ERRLC(regex_line_no, regex_colu_no, "Could not create Token Dictionary.");
 			add_def(&dictionary, dd);
+
+			HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Token '%s' assigned definition '%s'", nme, dd.regex);
 			
 			nme = NULL;
 			nconsumed_ind = i+1;

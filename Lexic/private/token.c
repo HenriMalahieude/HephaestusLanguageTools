@@ -12,7 +12,6 @@
 
 //returns the index of the matching token definition to input, or -1 if no match
 int match_within_vocabulary(struct lxc_vocabulary *vocab, char *input) {	
-	HLT_WRN(HLT_DEBUG, "Finding match for '%s'\n", input);
 	int match_index = -1;
 	
 	for (int defi = 0; defi < vocab->def_count; defi++) {
@@ -96,9 +95,7 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 	int lst_match = -1; //negative signifies no match
 	int lst_start = -1; //used to warn of dropped characters
 
-	HLT_WRN(HLT_DEBUG, "Beginning token stream creation loop!\n");
 	for (size_t i = 0; i < stlen; i++) {
-		//printf("at line %d, column %d\n", regex_line_no, regex_colu_no);
 		int sublen = i - nconsumed_ind + 1; //this means i is inclusive
 		if (sublen <= 0) continue; //don't support 0-string matches
 		if (sublen > 99) HLT_ERRLC(regex_line_no, regex_colu_no, "Regex doesn't support tokens longer than 99");
@@ -109,7 +106,7 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 		int cur_match = match_within_vocabulary(vocab, substring);
 		int cur_start = nconsumed_ind;
 
-		HLT_WRN(HLT_DEBUG, "We found: '%d' match in vocab (attempt 1)\n", cur_match);
+		if (cur_match > 0) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "We found %d match(es) in vocab", cur_match);
 		if (cur_match < 0 && sublen > 1) { //need to drop characters at front?
 			for (int j = 1; j < sublen; j++) { //just don't drop last character
 				char *subsub = substring + j;
@@ -119,10 +116,10 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 					break;
 				}
 			}
-			HLT_WRN(HLT_DEBUG, "So it appears we needed to drop characters: now have '%d' match in vocab\n", cur_match);
+			HLT_WRN(HLT_VERBSE, "Dropped characters at front: Found %d match(es) in vocab\n", cur_match);
 		}
 
-		if (cur_match >= 0) { //did we match here?
+		if (cur_match >= 0) { //did we match at 'this' character?
 			if (lst_match > -1 && lst_match != cur_match && lst_start < cur_start) {		
 				regex_colu_no -= 1; //since we don't use this "new" char
 				substring[sublen-1] = '\0'; //don't "match" the new character
@@ -138,13 +135,13 @@ LexicToken * LexicTokensFromString(char *stream, LexicVocabulary *vocab) {
 				lst_match = cur_match;
 				lst_start = cur_start;
 			} else { //eof, consume regardless
-				if (cur_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Dropping unmatched characters at front of unconsumed character sequence! (EOF)");
+				if (cur_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_STDWRN, "Dropping unmatched characters at front of unconsumed character sequence! (EOF)");
 				
 				add_token_to_tstream(&tstrm, &tlen, vocab->definitions[cur_match], substring+(cur_start-nconsumed_ind));
 				nconsumed_ind = i+1;
 			}
-		} else if (lst_match >= 0) { //did we match before this new character?
-			if (lst_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_VERBSE, "Dropping unmatched characters at front of unconsumed character sequence!");
+		} else if (lst_match >= 0) { //did we match on the last character?
+			if (lst_start != (int)nconsumed_ind) HLT_WRNLC(regex_line_no, regex_colu_no, HLT_STDWRN, "Dropping unmatched characters at front of unconsumed character sequence!");
 			if (sublen <= 1) HLT_ERRLC(regex_line_no, regex_colu_no, "How did we match a 0-length character? Fatal Error!");
 
 			regex_colu_no -= 1; //since we don't use this "new" char

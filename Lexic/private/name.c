@@ -10,7 +10,7 @@
 
 char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
 	if (file_name == NULL || file_name[0] == '\0') {
-		HLT_WRN(HLT_MJRWRN, "Given empty file_name?");
+		HLT_WRN(HLT_MJRWRN, "Given empty file name?");
 		return NULL;
 	}
 	
@@ -28,14 +28,20 @@ char ** LexicTokenNamesFromFile(char *file_name, LexicVocabulary *vocab) {
 }
 
 char ** LexicTokenNamesFromString(char *stream, LexicVocabulary *vocab) {
-	if (stream == NULL || stream[0] == '\0') return NULL;
+	if (stream == NULL || stream[0] == '\0') {
+		HLT_WRN(HLT_MJRWRN, "Given empty stream?");
+		return NULL;
+	}
 	if (vocab == NULL) {
-		HLT_WRN(HLT_MJRWRN, "Given NULL Vocab?");
+		HLT_WRN(HLT_MJRWRN, "Given NULL vocabulary?");
 		return NULL;
 	}
 
 	struct lxc_token *tstrm = LexicTokensFromString(stream, vocab);
-	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') return NULL;
+	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') {
+		HLT_WRN(HLT_VRBSE, "Token Stream from character stream is empty");
+		return NULL;
+	}
 
 	char **namestrm = NULL;
 	int name_strm_cnt = 0;

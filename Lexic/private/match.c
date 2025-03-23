@@ -21,7 +21,7 @@ size_t btstck[BTSTCKMAX];
 int sp = -1; 
 
 void psh_bt(size_t st) {
-	if (sp >= BTSTCKMAX-1) HLT_AERR("Stack Overflow attempted, maximum group nesting is 10 right now!");
+	if (sp >= BTSTCKMAX-1) HLT_AERR("Stack Overflow attempted, maximum group nesting is %d right now!", BTSTCKMAX);
 
 	btstck[++sp] = st;
 }
@@ -157,6 +157,7 @@ bool recover_fail(char *reg, size_t *ri, size_t *ii, int grp_lvl, bool *plus_qua
 }
 
 bool RegexMatch(char *reg, char *input) {
+	HLT_WRN(HLT_VERBSE, "Comparing '%s' with regex: '%s'", input, reg);
 	size_t rlen = strlen(reg);
 	size_t ilen = strlen(input);
 
