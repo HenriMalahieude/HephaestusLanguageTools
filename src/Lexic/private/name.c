@@ -39,7 +39,7 @@ char ** LexicTokenNamesFromString(char *stream, LexicVocabulary *vocab) {
 
 	struct lxc_token *tstrm = LexicTokensFromString(stream, vocab);
 	if (tstrm == NULL || tstrm[0].definition_name == NULL || tstrm[0].definition_name[0] == '\0') {
-		HLT_WRN(HLT_VRBSE, "Token Stream from character stream is empty");
+		HLT_WRN(HLT_VERBSE, "Token Stream from character stream is empty");
 		return NULL;
 	}
 

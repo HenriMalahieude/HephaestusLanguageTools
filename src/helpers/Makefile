@@ -2,12 +2,13 @@ CC = gcc
 BFLAGS = -Wall
 DY_FLAGS = -fPIC
 
-OUTDIR ?= ../_build/Helpers
+OUTDIR ?= ../../_build/Helpers
 SRC_LOC ?= .
 STATIC_OUTDIR := $(OUTDIR)/object
 DYNAMI_OUTDIR := $(OUTDIR)/shared
 
 #NOTE: NEEDS UNIQUE .c FILE NAMES
+$(info [!!!] Ensure that all .c files are unique!)
 SPACE := $(subst ,, )
 VPATH := $(subst $(SPACE),:,$(shell ls -d $(SRC_LOC)/*/))
 
