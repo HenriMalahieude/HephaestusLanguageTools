@@ -15,10 +15,10 @@ jobs:
     
     - name: Compile the tests
       run: |
-        cd Lexic/test/_build/
+        cd src/Lexic/test/_build/
         make
         
     - name: Run tests
       run: |
-        cd Lexic/test/_build/
+        cd src/Lexic/test/_build/
         ./test_all
