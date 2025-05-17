@@ -22,29 +22,31 @@ bool FollowTest() {
 	follow_of_book(book1);
 
 	char **set_start = SetCreate(1, ENDMRKR);
-	valid += TEST(SetEquality(set_start, book1->rule[0].follow_set), 1);
-	valid += TEST(SetEquality(set_start, book1->rule[1].follow_set), 1);
+	valid += TEST(SetEquality(set_start, book1->rules[0].follow_set), 1);
+	valid += TEST(SetEquality(set_start, book1->rules[1].follow_set), 1);
 	
 	char **set_c_t1 = SetCreate(1, "B");
-	valid += TEST(SetEquality(set_start, book1->rule[2].follow_set), 1);
+	valid += TEST(SetEquality(set_start, book1->rules[2].follow_set), 1);
 	SetFree(set_c_t1); set_c_t1 = NULL;
 
 	if (valid != test_count) {
 		print_test("Failed Trivial Case");
 		return false;
 	}
+	
+	print_test("Passed Trivial Case\n");
 
 	//Step 2: Test a simple book (from internet)
 	SyntacBook *book2 = SyntacBookAllocate();
 
-	SyntacBookRuleAdd(book2, "E", "T:E'");
-	SyntacBookRuleAdd(book2, "E'", "+:T:E'");
-	SyntacBookRuleAdd(book2, "E'", "");
-	SyntacBookRuleAdd(book2, "T", "F:T'");
-	SyntacBookRuleAdd(book2, "T'", "*:F:T'");
-	SyntacBookRuleAdd(book2, "T'", "");
-	SyntacBookRuleAdd(book2, "F", "(:E:)");
-	SyntacBookRuleAdd(book2, "F", "id");
+	SyntacBookRuleAdd(book2, "E", "T:E'"); //0
+	SyntacBookRuleAdd(book2, "E'", "+:T:E'"); //1
+	SyntacBookRuleAdd(book2, "E'", ""); //2
+	SyntacBookRuleAdd(book2, "T", "F:T'"); //3
+	SyntacBookRuleAdd(book2, "T'", "*:F:T'"); //4
+	SyntacBookRuleAdd(book2, "T'", ""); //5
+	SyntacBookRuleAdd(book2, "F", "(:E:)"); //6
+	SyntacBookRuleAdd(book2, "F", "id"); //7
 	if (book2->rule_count != 8) {
 		print_test("SyntacBookRuleAdd failed to add 8 rules as requested?");
 		return false;
@@ -54,26 +56,26 @@ bool FollowTest() {
 	follow_of_book(book2);
 
 	char **set_e_t2 = SetCreate(1, ")");
-	valid += TEST(SetEquality(set_e_t2, book2->rules[0].follow_set), 1);
+	valid += TEST_SET(book2->rules[0].follow_set, set_e_t2);
 	SetFree(set_e_t2); set_e_t2 = NULL;
 
 	printf("TODO: Start symbol setting!\n");
 
-	char **set_ep_t2 = SetCreate(2, ")", ENDMRKR);
-	valid += TEST(SetEquality(set_ep_t2, book2->rules[1].follow_set), 1);
-	valid += TEST(SetEquality(set_ep_t2, book2->rules[2].follow_set), 1);
+	char **set_ep_t2 = SetCreate(1, ")");
+	valid += TEST_SET(book2->rules[1].follow_set, set_ep_t2);
+	valid += TEST_SET(book2->rules[2].follow_set, set_ep_t2);
 	SetFree(set_ep_t2); set_ep_t2 = NULL;
 
-	char **set_t_t2 = SetCreate(3, "+", ")", ENDMRKR);
-	valid += TEST(SetEquality(set_t_t2, book2->rules[3].follow_set), 1);
+	char **set_t_t2 = SetCreate(2, "+", ")");
+	valid += TEST_SET(book2->rules[3].follow_set, set_t_t2);
 	
-	valid += TEST(SetEquality(set_t_t2, book2->rules[4].follow_set), 1);
-	valid += TEST(SetEquality(set_t_t2, book2->rules[5].follow_set), 1);
+	valid += TEST_SET(book2->rules[4].follow_set, set_t_t2);
+	valid += TEST_SET(book2->rules[5].follow_set, set_t_t2);
 	SetFree(set_t_t2); set_t_t2 = NULL;
 
-	char **set_f_t2 = SetCreate(4, "*", "+", ")", ENDMRKR);
-	valid += TEST(SetEquality(set_f_t2, book2->rules[6].follow_set), 1);
-	valid += TEST(SetEquality(set_f_t3, book2->rules[7].follow_set), 1);
+	char **set_f_t2 = SetCreate(3, "*", "+", ")");
+	valid += TEST_SET(book2->rules[6].follow_set, set_f_t2);
+	valid += TEST_SET(book2->rules[7].follow_set, set_f_t2);
 	SetFree(set_f_t2); set_f_t2 = NULL;
 
 	if (valid != test_count) {
@@ -81,6 +83,38 @@ bool FollowTest() {
 		return false;
 	}
 
+	print_test("Passed Simple Case!\n");
+
+	//Step 3: Test Grammar.stc
+	char path[] = "../grammar.stc";
+	SyntacBook *book3 = SyntacBookFromFile(path);
+
+	firsts_of_book(book3);
+	follow_of_book(book3);
+
+	valid += TEST_SET(book3->rules[0].follow_set, set_start); //func
+
+	char **set_args_t3 = SetCreate(1, "RIGHTPAREN");
+	valid += TEST_SET(book3->rules[1].follow_set, set_args_t3); //args
+	valid += TEST_SET(book3->rules[2].follow_set, set_args_t3);
+	SetFree(set_args_t3); set_args_t3 = NULL;
+
+	valid += TEST_SET(book3->rules[3].follow_set, set_start); //body
+	valid += TEST_SET(book3->rules[4].follow_set, set_start);
+
+	char **set_stmnts_t3 = SetCreate(1, "RIGHTCURLY");
+	valid += TEST_SET(book3->rules[5].follow_set, set_stmnts_t3); //statements
+	SetFree(set_stmnts_t3); set_stmnts_t3 = NULL;
+	
+	char **set_stmnt_t3 = SetCreate(3, "RIGHTCURLY", "WORD", ENDMRKR);
+	valid += TEST_SET(book3->rules[6].follow_set, set_stmnt_t3); //statement
+	valid += TEST_SET(book3->rules[7].follow_set, set_stmnt_t3);
+	SetFree(set_stmnt_t3); set_stmnt_t3 = NULL;
+
+	char **set_null_t3 = SetCreate(4, "RIGHTPAREN", "RIGHTCURLY", "WORD", ENDMRKR);
+	valid += TEST_SET(book3->rules[8].follow_set, set_null_t3);
+	SetFree(set_null_t3); set_null_t3 = NULL;
+	
 	SetFree(set_start); set_start = NULL;
 	return valid != test_count;
 }

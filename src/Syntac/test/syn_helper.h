@@ -16,12 +16,10 @@ extern int test_count;
 #ifdef VERBOSE
 # define print_test(msg) printf("[!] %s Test: %s\n", TEST_NAME, msg);
 #else
-# define print_test(msg) 
+# define print_test(msg) ;
 #endif
 
-
-
-static bool TEST(int input, int shouldbe) {
+static inline bool TEST(int input, int shouldbe) {
 	bool val = (input == shouldbe);
 #ifndef VERBOSE
 	if (!val) printf("[X] %s Test %d Fail\n", TEST_NAME, test_count);
@@ -34,7 +32,7 @@ static bool TEST(int input, int shouldbe) {
 	return val;
 }
 
-static bool TEST_STRING(char *input, char *shouldbe) {
+static inline bool TEST_STRING(char *input, char *shouldbe) {
 	bool val = (strcmp(input, shouldbe) == 0);
 #ifndef VERBOSE
 	if (!val) printf("[X] %s Test %d Fail: Got '%s' vs Expected '%s'\n", TEST_NAME, test_count, input, shouldbe);
@@ -47,7 +45,7 @@ static bool TEST_STRING(char *input, char *shouldbe) {
 	return val;
 }
 
-static bool TEST_NULL(void *input) {
+static inline bool TEST_NULL(void *input) {
 	bool val = (input == NULL);
 #ifndef VERBOSE
 	if (!val) printf("[X] %s Test %d Fail: Got %p vs Expected NULL\n", TEST_NAME, test_count, input);
@@ -60,7 +58,7 @@ static bool TEST_NULL(void *input) {
 	return val;
 }
 
-static bool TEST_SET(char **input, char **shouldbe) {
+static inline bool TEST_SET(char **input, char **shouldbe) {
 	bool val = SetEquality(input, shouldbe);
 #ifndef VERBOSE
 	if (!val) printf("[X] %s Test %d Fail: Sets not equal!\n", TEST_NAME, test_count);
