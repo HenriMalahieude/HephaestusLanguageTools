@@ -57,7 +57,7 @@ bool SetAdd(char ***set, char *item) {
 	if (SetContains(*set, item)) return false;
 
 	int count = SetCount(*set);
-	char **tmp = malloc(sizeof(char **) * (count+2));
+	char **tmp = malloc(sizeof(char *) * (count+2));
 	if (tmp == NULL) return false; //malloc failed?
 	
 	for (int i = 0; i < count; i++) {
@@ -69,6 +69,32 @@ bool SetAdd(char ***set, char *item) {
 	tmp[count+1] = NULL;
 
 	if (*set != NULL) free(*set); //only free what has been jailed
+	*set = tmp;
+
+	return true;
+}
+
+bool SetRemove(char ***set, char *item) {
+	if (set == NULL || item == NULL) return false;
+	if (!SetContains(*set, item)) return false;
+
+	int count = SetCount(*set);
+	char **tmp = malloc(sizeof(char *) * (count));
+	if (tmp == NULL) return false; //malloc failed?
+
+	int sub = 0;
+	char *ptr = NULL;
+	for (int i = 0; i < count; i++) {
+		//copy over, note the left shifting
+		if (strcmp((*set)[i], item) != 0) tmp[i - sub] = (*set)[i];
+		else {
+			sub = 1;
+			ptr = (*set)[i];
+		}
+	}
+
+	tmp[count-1] = NULL;
+	if (ptr != NULL) free(ptr);
 	*set = tmp;
 
 	return true;
