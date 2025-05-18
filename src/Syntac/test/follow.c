@@ -29,12 +29,50 @@ bool FollowTest() {
 	valid += TEST(SetEquality(set_start, book1->rules[2].follow_set), 1);
 	SetFree(set_c_t1); set_c_t1 = NULL;
 
+	SyntacBookFree(book1); book1 = NULL;
 	if (valid != test_count) {
 		print_test("Failed Trivial Case");
 		return false;
 	}
 	
 	print_test("Passed Trivial Case\n");
+
+	//Step 1.5: Recursion
+	book1 = SyntacBookAllocate();
+	SyntacBookRuleAdd(book1, "A", "B:A:A");
+	SyntacBookRuleAdd(book1, "B", "c");
+	SyntacBookRuleAdd(book1, "B", "");
+	SyntacBookRuleAdd(book1, "C", "B:C:d");
+	SyntacBookRuleAdd(book1, "D", "B:D:D:D:D:D:D:a");
+	valid += TEST(book1->rule_count, 5);
+	
+	firsts_of_book(book1);
+	follow_of_book(book1);
+
+	char **rec_a_b1 = SetCreate(1, ENDMRKR);
+	valid += TEST_SET(book1->rules[0].follow_set, rec_a_b1);
+	SetFree(rec_a_b1); rec_a_b1 = NULL;
+
+	char **rec_b_b1 = SetCreate(4, "c", "d", "a", ENDMRKR);
+	valid += TEST_SET(book1->rules[1].follow_set, rec_b_b1);
+	valid += TEST_SET(book1->rules[2].follow_set, rec_b_b1);
+	SetFree(rec_b_b1); rec_b_b1 = NULL;
+
+	char **rec_c_b1 = SetCreate(1, "d");
+	valid += TEST_SET(book1->rules[3].follow_set, rec_c_b1);
+	SetFree(rec_c_b1); rec_c_b1 = NULL;
+
+	char **rec_d_b1 = SetCreate(1, "a");
+	valid += TEST_SET(book1->rules[4].follow_set, rec_d_b1);
+	SetFree(rec_d_b1); rec_d_b1 = NULL;
+
+	SyntacBookFree(book1); book1 = NULL;
+	if (valid != test_count) {
+		print_test("Failed recursion case!");
+		return false;
+	}
+
+	print_test("Passed recursion case\n");
 
 	//Step 2: Test a simple book (from internet)
 	SyntacBook *book2 = SyntacBookAllocate();
@@ -58,8 +96,6 @@ bool FollowTest() {
 	char **set_e_t2 = SetCreate(1, ")");
 	valid += TEST_SET(book2->rules[0].follow_set, set_e_t2);
 	SetFree(set_e_t2); set_e_t2 = NULL;
-
-	printf("TODO: Start symbol setting!\n");
 
 	char **set_ep_t2 = SetCreate(1, ")");
 	valid += TEST_SET(book2->rules[1].follow_set, set_ep_t2);
@@ -114,7 +150,42 @@ bool FollowTest() {
 	char **set_null_t3 = SetCreate(4, "RIGHTPAREN", "RIGHTCURLY", "WORD", ENDMRKR);
 	valid += TEST_SET(book3->rules[8].follow_set, set_null_t3);
 	SetFree(set_null_t3); set_null_t3 = NULL;
+
+	if (valid != test_count) {
+		print_test("Failed file case!");
+		return false;
+	}
+
+	print_test("Passed file case\n");
 	
+	char path2[] = "../grammar2.stc";
+	SyntacBook *book4 = SyntacBookFromFile(path2);
+
+	firsts_of_book(book4);
+	follow_of_book(book4);
+
+	valid += TEST_SET(book4->rules[0].follow_set, set_start); //S
+	valid += TEST_SET(book4->rules[1].follow_set, set_start); //S
+	valid += TEST_SET(book4->rules[2].follow_set, set_start); //S
+	
+	char **set_a1_b4 = SetCreate(3, "h", "g", ENDMRKR);
+	valid += TEST_SET(book4->rules[3].follow_set, set_a1_b4);
+	valid += TEST_SET(book4->rules[4].follow_set, set_a1_b4);
+	SetFree(set_a1_b4); set_a1_b4 = NULL;
+
+	char **set_b1_b4 = SetCreate(4, ENDMRKR, "a", "h", "g");
+	valid += TEST_SET(book4->rules[5].follow_set, set_b1_b4);
+	valid += TEST_SET(book4->rules[6].follow_set, set_b1_b4);
+	SetFree(set_b1_b4); set_b1_b4 = NULL;
+
+	char **set_c1_b4 = SetCreate(4, "g", ENDMRKR, "b", "h");
+	valid += TEST_SET(book4->rules[7].follow_set, set_c1_b4);
+	valid += TEST_SET(book4->rules[8].follow_set, set_c1_b4);
+	SetFree(set_c1_b4); set_c1_b4 = NULL;
+
+	valid += TEST_SET(book4->rules[9].follow_set, set_start);
+
+	print_test("Finished all cases!");
 	SetFree(set_start); set_start = NULL;
 	return valid != test_count;
 }

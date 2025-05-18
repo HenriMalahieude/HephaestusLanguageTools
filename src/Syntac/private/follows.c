@@ -12,8 +12,9 @@ char **get_firsts_of(struct stc_book *book, char *rule_name) {
 	char **first = NULL;
 	for (int k = 0; k < book->rule_count; k++) {
 		if (strcmp(book->rules[k].name, rule_name) == 0) {
-			for (int i = 0; book->rules[k].first_set[i] != NULL; i++) 
-				SetAdd(&first, book->rules[k].first_set[i]);
+			char **tmp = SetUnion(first, book->rules[k].first_set);
+			if (first != NULL) SetFree(first);
+			first = tmp;
 		}
 	}
 
@@ -32,6 +33,7 @@ void follow_of_rule(struct stc_book *book, int rule_index) {
 		if (i == rule_index) continue;
 		if (strcmp(rule->name, book->rules[i].name) == 0) {
 			if (book->rules[i].follow_set != NULL) {
+				//makes a copy...., debating if I should have a normal pointer
 				rule->follow_set = SetUnion(NULL, book->rules[i].follow_set);
 				return;
 			}
@@ -45,7 +47,8 @@ void follow_of_rule(struct stc_book *book, int rule_index) {
 
 		//scan every element in right side
 		for (int j = 0; book->rules[i].elements[j] != NULL; j++) {
-			//We are looking for: "rule->name" "token/rule"
+			//We are looking for sqnce: "rule->name" "token/rule"
+			//		and token/rule != rule->name
 
 			char *elm = book->rules[i].elements[j];
 			if (elm != NULL && strcmp(rule->name, elm) != 0) continue; //Element not this rule
@@ -74,10 +77,6 @@ void follow_of_rule(struct stc_book *book, int rule_index) {
 						if (first == NULL) HLT_ERR("No first set for %s rule?", next);
 
 						//Rule 3: First contains e, possible to have firsts of next elm
-						if (SetContains(first, EPSILON)) {
-							printf("%s: epsilon in %s's firsts: ", rule->name, book->rules[i].name);
-							SetPrint(first);
-						}
 						if (SetRemove(&first, EPSILON)) move_on = false; 
 	
 						char **lcl = SetUnion(follow, first);
@@ -87,9 +86,8 @@ void follow_of_rule(struct stc_book *book, int rule_index) {
 						SetFree(first); first = NULL; //unioned, can now ignore
 						k++; //for r3
 						
-						if (!move_on && book->rules[i].elements[k] == NULL) { //means that we do Rule 3
-							printf("%s: can't move forward on %s, doing rule 3\n\n", rule->name, book->rules[i].name);
-							if (strcmp(book->rules[i].name, rule->name) == 0) continue; //skip
+						if (!move_on && book->rules[i].elements[k] == NULL) { //means that we do Rule 1
+							if (strcmp(book->rules[i].name, rule->name) == 0) break;
 							if (book->rules[i].follow_set == NULL) follow_of_rule(book, i);
 							
 							lcl = SetUnion(follow, book->rules[i].follow_set);
