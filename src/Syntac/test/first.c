@@ -7,7 +7,7 @@ bool FirstTest() {
 	int valid = 0;
 
 	print_test("Start!");
-	
+	// /*	
 	//Step 0: Test trivial/edge-cases (includes epsilon)
 	SyntacBook *book1 = SyntacBookAllocate();
 	SyntacBookRuleAdd(book1, "A", "B");
@@ -38,6 +38,43 @@ bool FirstTest() {
 
 	print_test("Passed trivial/edge-cases\n");
 	
+	//Step 0.5: Recursion
+	book1 = SyntacBookAllocate();
+	SyntacBookRuleAdd(book1, "A", "B:A:A");
+	SyntacBookRuleAdd(book1, "B", "c");
+	SyntacBookRuleAdd(book1, "B", "");
+	SyntacBookRuleAdd(book1, "C", "B:C:d");
+	SyntacBookRuleAdd(book1, "D", "B:D:D:D:D:D:a");
+	valid += TEST(book1->rule_count, 5);
+
+	firsts_of_book(book1);
+		
+	char **rec_a_b1 = SetCreate(2, "c", EPSILON);
+	valid += TEST_SET(book1->rules[0].first_set, rec_a_b1);
+	SetFree(rec_a_b1); rec_a_b1 = NULL;
+
+	char **rec_b1_b1 = SetCreate(1, "c");
+	valid += TEST_SET(book1->rules[1].first_set, rec_b1_b1);
+	SetFree(rec_b1_b1); rec_b1_b1 = NULL;
+
+	valid += TEST_STRING(book1->rules[2].first_set[0], EPSILON);
+	
+	char **rec_c_b1 = SetCreate(2, "c", "d");
+	valid += TEST_SET(book1->rules[3].first_set, rec_c_b1);
+	SetFree(rec_c_b1); rec_c_b1 = NULL;
+
+	char **rec_d_b1 = SetCreate(2, "c", "a");
+	valid += TEST_SET(book1->rules[4].first_set, rec_d_b1);
+	SetFree(rec_d_b1); rec_d_b1 = NULL;
+
+	SyntacBookFree(book1); book1 = NULL;
+	if (valid != test_count) {
+		print_test("Failed recursion case!");
+		return false;
+	}
+
+	print_test("Passed recursion case\n");
+
 	//Step 1.5: Simple grammar without epsilon rules
 	//	NOTE: This would not be a valid Top Down Grammar
 	book1 = SyntacBookAllocate();
@@ -133,7 +170,7 @@ bool FirstTest() {
 	}
 
 	print_test("Passed simple case!\n");
-
+	// */
 	//Step 2: Test File Grammar
 	SyntacBook *book = SyntacBookFromFile("../grammar.stc");
 	valid += TEST(book->rule_count, 9);
@@ -149,17 +186,17 @@ bool FirstTest() {
 	valid += TEST_SET(book->rules[2].first_set, set_args2_b); //args2
 	
 	char **set_body1_b = SetCreate(1, "LEFTCURLY");
-	valid += TEST_SET(book->rules[3].first_set, set_body1_b);
+	valid += TEST_SET(book->rules[3].first_set, set_body1_b); //body1
 
 	char **set_body2_b = SetCreate(2, "WORD", EPSILON);
-	valid += TEST_SET(book->rules[4].first_set, set_body2_b);
-	valid += TEST_SET(book->rules[5].first_set, set_body2_b);
+	valid += TEST_SET(book->rules[4].first_set, set_body2_b); //body2
+	valid += TEST_SET(book->rules[5].first_set, set_body2_b); //statements
 
 	char **set_stmnt1_b = SetCreate(1, "WORD");
-	valid += TEST_SET(book->rules[6].first_set, set_stmnt1_b);
+	valid += TEST_SET(book->rules[6].first_set, set_stmnt1_b); //statement
 
-	valid += TEST_SET(book->rules[7].first_set, set_args2_b);
-	valid += TEST_SET(book->rules[8].first_set, set_args2_b);
+	valid += TEST_SET(book->rules[7].first_set, set_args2_b); //statement 2
+	valid += TEST_SET(book->rules[8].first_set, set_args2_b); //null
 
 	SetFree(set_args2_b); set_args2_b = NULL;
 	SetFree(set_body1_b); set_body1_b = NULL;
