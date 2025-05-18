@@ -7,12 +7,9 @@
 // separator for the right production of rules
 #define RIGHT_DELIM ':'
 
-//Used for firsts (empty string)
-//Should be impossible to get this through as a "name" or "elements[i]" of stc_rule
-#define EPSILON "\1" 
-
-//Used for follows (end of string)
-#define ENDMRKR "\2"
+//Using chars that should be impossible to acquire
+#define EPSILON "\1" //Used for firsts (empty string)
+#define ENDMRKR "\2" //Used for follows (end of string/eof)
 
 //Limitations
 #define FIRSTS_CHG_LIM 1000
@@ -21,25 +18,18 @@
 //Rule Definition
 // left -> right 
 // a -> b : c:xx :
-// which is [ 'a' consumes 'bcxx' ]
+// which is [ 'a' consumes tokens 'b' 'c' 'xx' in sequence ]
 struct stc_rule {
-	char *name; //also the left part of the rule
-	char **elements; //also the right part of the rule (null-terminated)
-					 
-	char **first_set; // NULL-Terminated
+	char *name; //left,
+	char **elements; //right, production (NULL-terminated)
+
+	char **first_set; //set, see sets.h
 	char **follow_set; //diddo
 };
 
 //Parsing Tables
-//	TODO: Serializability?
-struct stc_top_table_entry {
-	char *token_seen;
-	struct stc_rule *rule_to_use;
-};
-
-struct stc_bot_table_entry {
-	char **tokens_seen;
-};
+struct stc_ll1_table_entry;
+struct stc_lr1_table_entry;
 
 //Rule Book
 struct stc_book {
@@ -47,18 +37,20 @@ struct stc_book {
 	struct stc_rule *rules;
 	int rule_count;
 
-	struct stc_top_table_entry *top_table;
-	struct stc_bot_table_entry *bot_table;
+	union {
+		struct stc_ll1_table_entry *ll1_table;
+		struct stc_lr1_table_entry *lr1_table;
+	};
 };
 
-bool is_terminal(struct stc_book *book, char *element);
+bool is_terminal(struct stc_book *book, char *element); //terminal.c
 
-void firsts_of_book(struct stc_book *book);
-void follow_of_book(struct stc_book *book);
+void firsts_of_book(struct stc_book *book); //firsts.c
+void follow_of_book(struct stc_book *book); //follows.c
 
-struct stc_tree_node * TopParseTokens(struct stc_book *book, void *stream);
-struct stc_tree_node * TopParseStream(struct stc_book *book, char **stream);
+struct stc_tree_node * LL1ParseTokens(struct stc_book *book, void *stream);
+struct stc_tree_node * LL1ParseStream(struct stc_book *book, char **stream);
 
-struct stc_tree_node * BotParseTokens(struct stc_book *book, void *stream);
-struct stc_tree_node * BotParseStream(struct stc_book *book, char **stream);
+struct stc_tree_node * LR1ParseTokens(struct stc_book *book, void *stream);
+struct stc_tree_node * LR1ParseStream(struct stc_book *book, char **stream);
 #endif

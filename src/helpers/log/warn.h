@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#define HLT_ERR_SYMB "[!] "
-#define HLT_WRN_SYMB "[?] "
+#define HLT_ERR_SYMB "[X] "
+#define HLT_WRN_SYMB "[W] "
 #define HLT_OUTFILE fprintf(stderr, "%s", __FILE__)
 #define HLT_OUTFUNC fprintf(stderr, "%s", __func__)
 
@@ -12,7 +12,7 @@
 #define HLT_LOGLOC \
 	fprintf(stderr, "["); \
 	HLT_OUTFILE; \
-	fprintf(stderr, "/"); \
+	fprintf(stderr, ":"); \
 	HLT_OUTFUNC; \
 	printf("]")
 

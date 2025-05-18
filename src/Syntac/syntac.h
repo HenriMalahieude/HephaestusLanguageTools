@@ -8,18 +8,22 @@ typedef struct stc_book SyntacBook;
 //Types of Grammar Trees
 typedef enum stc_parsing_style {
 	STC_NON = 0,
-	STC_TOP, 	//Top-Down (LL1)
-	STC_BOT, 	//Bottom-Up (LR1)
+	STC_LL1,
+	STC_LR1,
 	STC_SZ,
-} SyntacTreeType;
+} SyntacParseType;
+
+//secondary names
+#define STC_TOP STC_LL1 //Top-Down (LL1)
+#define STC_BOT STC_LR1 //Bottom-Up (LR1)
 
 typedef struct stc_tree_node {
-	enum stc_parsing_style type;
+	SyntacParseType type;
 	struct stc_tree_node *children; //null-terminated
 	char *rule_name; //Grammar Rule Name
 
 	int line_start, col_start;
-	int line_end, col_end;
+	int line_end,   col_end;
 } SyntacTreeNode;
 
 /*----------------------------Books----------------------------*/
@@ -29,7 +33,7 @@ typedef struct stc_tree_node {
 SyntacBook * SyntacBookFromFile(char *file_name);
 
 //Allocate and Populate a rule book from a string stream
-SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type);
+SyntacBook * SyntacBookFromString(char *stream, SyntacParseType type);
 
 //Validate grammar book can be built into table
 //TODO: check that this is needed

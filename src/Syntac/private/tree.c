@@ -15,12 +15,12 @@ SyntacTreeNode * SyntacTreeFromTokens(void *stream, Syntac *book) {
 
 	SyntacTreeType typ = book->type;
 	switch (typ) {
-		case (STC_TOP):
-			return TopParseTokens(stream, book);
-		case (STC_BOT):
-			return BotParseTokens(stream, book);
+		case (STC_LL1):
+			return LL1ParseTokens(stream, book);
+		case (STC_LR1):
+			return LR1ParseTokens(stream, book);
 		default:
-			HLT_AERR("Unknown Parsing Type!?!?");
+			HLT_ERR("Unknown Parsing Type!?!? (%d)", (int)typ);
 			break;
 	}
 	
@@ -41,12 +41,12 @@ SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book) {
 
 	SyntacTreeType typ = book->type;
 	switch (typ) {
-		case (STC_TOP):
-			return TopParseStream(stream, book);
-		case (STC_BOT):
-			return BotParseStream(stream, book);
+		case (STC_LL1):
+			return LL1ParseStream(stream, book);
+		case (STC_LR1):
+			return LR1ParseStream(stream, book);
 		default:
-			HLT_AERR("Unknown Parsing Type!?!?");
+			HLT_ERR("Unknown Parsing Type!?!? (%d)", (int)typ);
 			break;
 	}
 	

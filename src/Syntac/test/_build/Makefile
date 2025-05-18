@@ -25,7 +25,7 @@ all_indv: $(INDV_TESTS)
 $(INDV_TESTS): $(DEPS)
 	$(CC) -o $@ ../$@.c $^ $(FLAGS) -DVERBOSE $(XTRA_FLAGS)
 
-warn.o: $(HLP_DIR)/log/warn.c
+warn.o: $(HLP_DIR)/log/warn.c $(HLP_DIR)/log/warn.h
 	$(CC) -c $< $(FLAGS)
 
 file_to_str.o: $(HLP_DIR)/string/file_to_str.c

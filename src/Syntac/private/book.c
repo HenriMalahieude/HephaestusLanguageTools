@@ -34,19 +34,22 @@ void SyntacBookFree(SyntacBook *book) {
 		free(rule->name); rule->name = NULL;
 		for (int j = 0; rule->elements[j] != NULL; j++) {
 			free(rule->elements[j]); //free all elements inside
+			rule->elements[j] = NULL;
 		}
 		free(rule->elements); rule->elements = NULL; //free container
 		
 		//Free the sets we allocated
 		if (rule->first_set != NULL) SetFree(rule->first_set);
 		if (rule->follow_set != NULL) SetFree(rule->follow_set);
+		rule->first_set = NULL;
+		rule->follow_set = NULL;
 	}
 
 	if (book->rules != NULL) free(book->rules); 
 	book->rules = NULL; book->rule_count = 0;
 	free(book);
 
-	HLT_WRN(HLT_MJRWRN, "TODO: top and bottom table freeing!");
+	HLT_AWRN(HLT_MJRWRN, "TODO: parsing table freeing!");
 }	
 
 void SyntacBookRuleAdd(SyntacBook *book, char *left, char *right) {
@@ -128,14 +131,20 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 	for (nl = 0; cntnts[nl] != '\0' && cntnts[nl] != '\n'; nl++);
 	if (nl == 0) HLT_ERR("File had no type specifier? (Or was empty?)");
 
+	if (nl >= SUBSTR_SZ) HLT_ERR("Type specifier line for file was longer (%d) than substring max (%d)?", nl, SUBSTR_SZ);
 	char substr[SUBSTR_SZ];
 	strncpy(substr, cntnts, nl);
+	substr[nl] = '\0';
 
 	enum stc_parsing_style type = STC_NON;
-	if 	(strncmp(substr, "TOP", 3) == 0) type = STC_TOP;
-	else if (strncmp(substr, "BOT", 3) == 0) type = STC_BOT;
+	if 	(strncmp(substr, "TOP", 3) == 0
+			|| strncmp(substr, "LL1", 3) == 0) type = STC_LL1;
+	else if (strncmp(substr, "BOT", 3) == 0
+			|| strncmp(substr, "LR1", 3) == 0) type = STC_LR1;
 	else {
-		HLT_WRN(HLT_MJRWRN, "File did not contain proper parsing type?");
+		HLT_WRN(HLT_MJRWRN, "Unimplemented parsing style: '%s'", substr);
+
+		free(cntnts);
 		return NULL;
 	}
 		
@@ -145,7 +154,7 @@ SyntacBook * SyntacBookFromFile(char *file_name){
 	return book;
 }
 
-SyntacBook * SyntacBookFromString(char *stream, SyntacTreeType type) {
+SyntacBook * SyntacBookFromString(char *stream, SyntacParseType type) {
 	if (stream == NULL || stream[0] == '\0') {
 		HLT_WRN(HLT_MJRWRN, "Provided stream empty?");
 		return NULL;
