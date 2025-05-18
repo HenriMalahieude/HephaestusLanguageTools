@@ -47,6 +47,22 @@ bool SetEquality(char **set1, char **set2) {
 	return true;
 }
 
+//Opposite of Disjoint
+// empty set is disjoint to everything
+bool SetOverlaps(char **set1, char **set2) {
+	if (set1 == NULL || set2 == NULL) return false;
+
+	int cnt1 = SetCount(set1);
+	if (cnt1 <= 0) return false;
+	if (SetCount(set2) <= 0) return false;
+
+	for (int i = 0; i < cnt1; i++) {
+		if (SetContains(set2, set1[i])) return true;
+	}
+
+	return false;
+}
+
 //One by one add, may not be totally efficient
 //...
 //But honestly who cares, I got better things to do

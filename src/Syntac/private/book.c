@@ -8,11 +8,14 @@
 //Allocate an Empty Rule Book
 SyntacBook * SyntacBookAllocate() {
 	SyntacBook *book = (SyntacBook*)malloc(sizeof(struct stc_book));
-
 	if (book == NULL) HLT_ERR("Attempted malloc of a book failed?");
 	
+	book->type = STC_NON;
 	book->rules = NULL;
 	book->rule_count = 0;
+
+	//This is a union, so it covers everything
+	book->ll1_table = NULL;
 
 	return book;
 }
@@ -24,6 +27,8 @@ void SyntacBookFree(SyntacBook *book) {
 		return;
 	}
 
+	//Rule is not dynamically allocated, don't free it
+	// see SyntacBookRuleAdd
 	for (int i = 0; i< book->rule_count; i++){
 		struct stc_rule *rule = &book->rules[i];
 		if (rule == NULL) {

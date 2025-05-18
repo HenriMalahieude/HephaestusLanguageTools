@@ -25,6 +25,10 @@ bool SetContains(char **set, char *item);
 // Equivalency check (must be exact same, though not positionally)
 bool SetEquality(char **set1, char **set2);
 
+// Overlapping (set1 == set2 or has some similar items)
+// opposite of disjoint
+bool SetOverlaps(char **set1, char **set2);
+
 // Outputs succesful (and unique) additions to the set
 // If it's in the set before, it returns false
 // Makes a (malloc) copy of the item
