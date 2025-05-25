@@ -129,6 +129,17 @@ bool SetTest() {
 	SetFree(variadic_set); variadic_set = NULL;
 	SetFree(set_set); set_set = NULL;
 
+
+	//Check Overlap
+	char **a_set = SetCreate(2, "a", "b");
+	char **b_set = SetCreate(2, "b", "c");
+	valid += TEST(SetOverlaps(a_set, b_set), 1);
+	valid += TEST(SetRemove(&b_set, "b"), 1);
+	valid += TEST(SetOverlaps(a_set, b_set), 0);
+
+	SetFree(a_set); a_set = NULL;
+	SetFree(b_set); b_set = NULL;
+
 bottom:
 	SetFree(set); set = NULL;
 	print_test("Finished");
