@@ -21,6 +21,7 @@ typedef struct stc_tree_node {
 	SyntacParseType type;
 	struct stc_tree_node *children; //null-terminated
 	char *rule_name; //Grammar Rule Name
+	bool is_token; //grammar node, or token leaf
 
 	int line_start, col_start;
 	int line_end,   col_end;
@@ -51,13 +52,14 @@ void SyntacBookFree(SyntacBook *);
 /*----------------------------Trees----------------------------*/
 
 //Generate a Syntactical Tree representation of tokens 
-//Expects token stream to be null-terminated 
-//Also assumes that it receives LexicTokens (void * -> LexicToken *)
-SyntacTreeNode * SyntacTreeFromTokens(void *stream, SyntacBook *book);
+//Expects token stream to be null-terminated (stream[x].name == NULL || stream[x].name[0] == '\0')
+typedef struct lxc_token LexicToken;
+SyntacTreeNode * SyntacTreeFromTokens(LexicToken *stream, SyntacBook *book);
 
+//NOTE: What value could this have if you don't have the raw item?
 //Generate a Syntactical Tree representation of string stream
 //Expects token string stream to be null-terminated (stream[x] == NULL || stream[x][0] == 0)
-SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book);
+//SyntacTreeNode * SyntacTreeFromStream(char **stream, SyntacBook *book);
 
 //Free a null-terminated Syntactical Tree
 void SyntacTreeFree(SyntacTreeNode *);
